@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>판매자 입점 신청 - YangPang</title></head>
+<body>
+<main class="flex-1 py-8">
+    <div class="mx-auto w-full max-w-lg px-4 text-sm">
+        <h1 class="text-xl font-bold">판매자 입점 신청</h1>
+        <p class="mt-1 text-xs text-gray-500">연구용 데모입니다. 실제 사업자 정보를 넣지 마세요 (가짜 번호 000-00-00000 형식).</p>
+        <form th:action="@{/seller/apply}" method="post" class="mt-4 space-y-4 rounded-lg bg-white p-6">
+            <label class="block"><span class="mb-1 block font-semibold">상호</span>
+                <input name="name" required maxlength="100" class="input" placeholder="예: 하늘상회"></label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="block"><span class="mb-1 block font-semibold">사업자등록번호</span>
+                    <input name="businessNo" required class="input" placeholder="000-00-12345" pattern="\d{3}-\d{2}-\d{5}"></label>
+                <label class="block"><span class="mb-1 block font-semibold">대표자</span>
+                    <input name="ceoName" required maxlength="50" class="input"></label>
+            </div>
+            <label class="block"><span class="mb-1 block font-semibold">사업장 주소</span>
+                <input name="address" required class="input" placeholder="서울특별시 가상구 연구로 1"></label>
+            <label class="block"><span class="mb-1 block font-semibold">고객센터 전화</span>
+                <input name="csPhone" required class="input" placeholder="010-0000-0000"></label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="block"><span class="mb-1 block font-semibold">기본 배송비</span>
+                    <input name="shippingFee" type="number" min="0" max="20000" step="100" value="3000" required class="input"></label>
+                <label class="block"><span class="mb-1 block font-semibold">무료배송 기준 <span class="font-normal text-gray-400">(선택)</span></span>
+                    <input name="freeThreshold" type="number" min="0" step="1000" class="input" placeholder="30000"></label>
+            </div>
+            <p class="rounded bg-gray-50 p-3 text-xs text-gray-500">판매자배송(마켓플레이스) 판매자로 입점합니다. 운영자 승인 후 셀러센터를 이용할 수 있어요.</p>
+            <button class="btn-primary w-full">신청하기</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

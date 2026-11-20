@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'simulator')}">
+<head><title>시뮬레이터 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-3xl space-y-4">
+    <h1 class="text-xl font-bold">시뮬레이터</h1>
+    <p class="text-xs text-gray-500">앱의 "지금"을 빨리 감아 배송 진행·자동 구매확정·미결제 주문 취소를 확인합니다. 도착 예정일, 주문 시각 등 화면의 모든 시각이 이 시계를 따릅니다.</p>
+
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-lg bg-white p-5">
+            <p class="text-gray-500">시뮬레이션 시각</p>
+            <p class="mt-1 text-2xl font-extrabold" th:text="${@fmt.dateTime(now)}">시각</p>
+            <p class="mt-1 text-gray-600">배속 <b th:text="${speed} + 'x'">1x</b>
+                <span class="text-xs text-gray-400" th:if="${speed > 1}" th:text="'(실제 1분 = ' + ${speed / 60} + '시간)'"></span></p>
+            <p class="mt-1 text-gray-600">자동 실행 <b th:text="${autoRun} ? '켜짐 (5초마다)' : '꺼짐'">켜짐</b></p>
+        </div>
+        <div class="rounded-lg bg-white p-5">
+            <p class="mb-2 text-gray-500">주문 상태 현황</p>
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <th:block th:each="e : ${counts}">
+                    <dt class="text-gray-600" th:text="${e.key.label()}">상태</dt><dd class="text-right font-semibold" th:text="${e.value}">0</dd>
+                </th:block>
+            </dl>
+        </div>
+    </div>
+
+    <div class="space-y-3 rounded-lg bg-white p-5">
+        <p class="font-bold">배속</p>
+        <div class="flex flex-wrap gap-2">
+            <form th:each="s : ${ {1, 60, 360, 1440} }" th:action="@{/admin/simulator/speed}" method="post">
+                <input type="hidden" name="speed" th:value="${s}">
+                <button class="btn-outline" th:classappend="${speed == s} ? 'border-brand-600 text-brand-700'"
+                        th:text="${s} + 'x' + (${s == 60} ? ' (1분=1시간)' : (${s == 1440} ? ' (1분=1일)' : ''))">1x</button>
+            </form>
+        </div>
+        <p class="pt-2 font-bold">건너뛰기 <span class="text-xs font-normal text-gray-400">(건너뛴 뒤 바로 한 번 실행)</span></p>
+        <div class="flex flex-wrap gap-2">
+            <form th:each="h : ${ {1, 6, 24, 72, 168} }" th:action="@{/admin/simulator/jump}" method="post">
+                <input type="hidden" name="hours" th:value="${h}">
+                <button class="btn-outline" th:text="'+' + (${h >= 24} ? ${h / 24} + '일' : ${h} + '시간')">+1시간</button>
+            </form>
+        </div>
+        <div class="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+            <form th:action="@{/admin/simulator/tick}" method="post"><button class="btn-primary">지금 한 번 실행</button></form>
+            <form th:action="@{/admin/simulator/auto}" method="post">
+                <input type="hidden" name="on" th:value="${!autoRun}">
+                <button class="btn-outline" th:text="${autoRun} ? '자동 실행 끄기' : '자동 실행 켜기'">자동</button></form>
+            <form th:action="@{/admin/simulator/reset}" method="post"><button class="btn-outline">실제 시각으로 되돌리기</button></form>
+        </div>
+    </div>
+
+    <div class="rounded-lg bg-white p-5 text-xs text-gray-600">
+        <p class="mb-1 font-bold text-gray-800">진행 규칙</p>
+        <p>결제완료 →(30분) 상품준비중 →(2시간) 출고완료 →(3시간) 배송중 →(도착 예정일 14시, 프레시 06시) 배송완료 →(7일) 자동 구매확정</p>
+        <p>상품 20개 중 1개꼴로 하루 지연 · 결제 화면에서 10분 안에 결제하지 않으면 주문 취소·재고 복구 · 가상계좌는 10명 중 7명이 2시간 뒤 입금, 나머지는 24시간 기한 초과로 취소</p>
+    </div>
+</main>
+</body>
+</html>

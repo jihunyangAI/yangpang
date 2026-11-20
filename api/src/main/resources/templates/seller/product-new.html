@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'new')}">
+<head><title>새 상품 등록 - YangPang 셀러센터</title></head>
+<body>
+<main class="max-w-2xl">
+    <h1 class="mb-1 text-xl font-bold">새 상품 등록</h1>
+    <p class="mb-5 text-xs text-gray-500">이미 양팡에 있는 상품이면 <a th:href="@{/seller/catalog}" class="text-indigo-700 underline">기존 상품에 판매 추가</a>를 이용하세요 (같은 상품 페이지를 함께 씁니다).
+        배송은 판매자 유형(<b th:text="${seller.sellerType.label()}"></b>)에 따라 정해집니다.</p>
+
+    <!-- 오류가 나도 입력값이 남도록 htmx로 보낸다 (오류는 토스트, 성공하면 HX-Redirect) -->
+    <form hx-post="/seller/products" hx-swap="none" class="space-y-5 rounded-lg bg-white p-6">
+        <label class="block"><span class="mb-1 block font-semibold">카테고리 (소분류)</span>
+            <select name="categoryId" class="input" hx-get="/seller/products/attributes" hx-trigger="change" hx-target="#attributes" hx-swap="outerHTML">
+                <option value="">선택하세요</option>
+                <option th:each="l : ${leaves}" th:value="${l.id}" th:text="${l.path}">경로</option>
+            </select></label>
+
+        <div th:replace="~{seller/attributes :: attributes}"></div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <label class="block"><span class="mb-1 block font-semibold">브랜드 <span class="font-normal text-gray-400">(선택)</span></span>
+                <input name="brandName" class="input"></label>
+            <label class="block"><span class="mb-1 block font-semibold">상품명</span>
+                <input name="name" maxlength="200" class="input"></label>
+        </div>
+        <label class="block"><span class="mb-1 block font-semibold">상품 설명</span>
+            <textarea name="description" rows="3" class="input"></textarea></label>
+        <fieldset class="rounded-md border border-gray-200 p-4">
+            <legend class="px-1 font-semibold">옵션 <span class="font-normal text-gray-400">(비우면 단일 상품)</span></legend>
+            <div class="grid grid-cols-[120px_1fr] gap-2">
+                <input name="option1Name" class="input" placeholder="색상">
+                <input name="option1Values" class="input" placeholder="블랙, 화이트 (쉼표로 구분)">
+                <input name="option2Name" class="input" placeholder="사이즈">
+                <input name="option2Values" class="input" placeholder="S, M, L">
+            </div>
+        </fieldset>
+        <div class="grid grid-cols-3 gap-3">
+            <label class="block"><span class="mb-1 block font-semibold">정가</span>
+                <input name="listPrice" type="number" min="0" step="10" class="input"></label>
+            <label class="block"><span class="mb-1 block font-semibold">판매가</span>
+                <input name="salePrice" type="number" min="100" step="10" class="input"></label>
+            <label class="block"><span class="mb-1 block font-semibold">재고 (조합당)</span>
+                <input name="stock" type="number" min="0" value="50" class="input"></label>
+        </div>
+        <button type="submit" class="btn-primary w-full bg-indigo-700 hover:bg-indigo-800">등록하기</button>
+    </form>
+</main>
+</body>
+</html>

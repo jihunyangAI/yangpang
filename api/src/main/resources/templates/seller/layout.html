@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- 셀러센터 공통 레이아웃. 사용: th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'offers')}" -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content, active)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title th:replace="${title}">셀러센터</title>
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/htmx.min.js}" defer></script>
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body class="font-plain min-h-screen bg-gray-100 text-sm md:flex">
+<aside class="bg-indigo-950 text-indigo-200 md:min-h-screen md:w-56 md:shrink-0">
+    <div class="flex items-center justify-between px-4 py-4 md:block">
+        <a th:href="@{/seller}" class="text-lg font-black text-white" aria-label="YangPang 셀러센터"><span th:replace="~{fragments/logo :: logo('yp-logo--dark')}"></span> <span class="text-indigo-300">셀러센터</span></a>
+        <a th:href="@{/}" class="text-xs text-indigo-300 hover:text-white md:mt-1 md:block">쇼핑몰로 ›</a>
+    </div>
+    <p th:if="${seller != null}" class="hidden px-4 pb-3 text-xs text-indigo-300 md:block"
+       th:text="${seller.name} + ' · ' + ${seller.sellerType.label()}">판매자</p>
+    <nav class="no-scrollbar flex overflow-x-auto md:block">
+        <a th:each="m : ${ { {'dashboard','/seller','홈'}, {'offers','/seller/offers','판매 상품'}, {'new','/seller/products/new','새 상품 등록'},
+                             {'catalog','/seller/catalog','기존 상품에 판매 추가'}, {'orders','/seller/orders','주문 처리'},
+                             {'claims','/seller/claims','반품·교환 검수'}, {'inquiries','/seller/inquiries','상품문의'}, {'ads','/seller/ads','광고'}, {'stats','/seller/stats','판매 통계'}, {'settlements','/seller/settlements','정산'} } }"
+           th:href="${m[1]}" th:text="${m[2]}" class="block shrink-0 px-4 py-2.5"
+           th:classappend="${active == m[0]} ? 'bg-indigo-900 font-bold text-white' : 'hover:bg-indigo-900 hover:text-white'">메뉴</a>
+    </nav>
+    <p class="hidden px-4 pt-6 text-xs text-indigo-400 md:block">연구용 데모 · 정산·광고비는 모의 금액</p>
+</aside>
+<div class="min-w-0 flex-1 p-4 md:p-8">
+    <main th:replace="${content}"></main>
+</div>
+<div id="toast" aria-live="polite" class="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"><div
+        th:if="${flashMessage != null}" th:text="${flashMessage}"
+        class="pointer-events-auto rounded-full bg-gray-900/90 px-5 py-3 text-sm text-white shadow-lg"></div></div>
+</body>
+</html>

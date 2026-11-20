@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="${p.name} + ' - YangPang'">상품 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 pb-24 md:pb-0">
+    <div class="container-page py-4 md:py-6">
+
+        <!-- 브레드크럼 -->
+        <nav class="mb-3 flex flex-wrap items-center gap-1 text-xs text-gray-500">
+            <a th:href="@{/}" class="hover:underline">홈</a>
+            <th:block th:each="n : ${p.breadcrumb}">
+                <span>›</span>
+                <a th:href="@{/category/{id}(id=${n.id})}" th:text="${n.name}" class="hover:underline">카테고리</a>
+            </th:block>
+        </nav>
+
+        <div class="md:grid md:grid-cols-2 md:gap-14">
+
+            <!-- 이미지 갤러리 -->
+            <section data-gallery>
+                <div class="-mx-4 aspect-square overflow-hidden bg-gray-100 md:mx-0 md:rounded-[32px]">
+                    <img th:src="${p.images[0]}" th:alt="${p.name}" class="h-full w-full object-cover" data-gallery-main>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <button type="button" th:each="img, st : ${p.images}" th:attr="data-gallery-thumb=${img}"
+                            class="h-16 w-16 overflow-hidden rounded-2xl border-2 md:h-20 md:w-20"
+                            th:classappend="${st.first} ? 'border-brand-600' : 'border-transparent'">
+                        <img th:src="${img}" alt="" class="h-full w-full object-cover">
+                    </button>
+                </div>
+            </section>
+
+            <!-- 구매 영역 (옵션을 바꾸면 htmx가 이 영역만 교체) -->
+            <section id="buy-box" class="mt-6 md:mt-0">
+                <a th:if="${p.brandName != null}" th:href="@{/brands/{id}(id=${p.brandId})}"
+                   class="text-sm font-bold text-sea-600 hover:underline" th:text="${p.brandName} + ' 브랜드관 ›'">브랜드</a>
+                <h1 class="mt-1.5 text-[22px] font-bold leading-snug md:text-[28px]" th:text="${p.name}">상품명</h1>
+
+                <a href="#reviews" class="mt-2 flex items-center gap-1.5 text-sm text-gray-500" th:if="${p.reviewCount > 0}">
+                    <span class="stars"><span th:style="'width:' + ${p.ratingPercent()} + '%'"></span></span>
+                    <span th:text="${p.rating}">4.5</span>
+                    <span class="text-gray-600 underline underline-offset-4" th:text="${#numbers.formatInteger(p.reviewCount, 1, 'COMMA')} + '개 상품평'">상품평</span>
+                </a>
+
+                <!-- 가격 -->
+                <div class="mt-5 border-b border-gray-200 pb-5">
+                    <!-- 오늘의 특가 진행 중 -->
+                    <th:block th:if="${p.offer.deal != null}">
+                        <a th:href="@{/deals}" class="mb-3 flex items-center gap-3 rounded-2xl bg-brand-100 px-4 py-3 text-sm text-brand-700">
+                            <b>오늘의 특가</b>
+                            <span class="tabular-nums"><span data-countdown th:attr="data-countdown=${p.offer.deal.endsInMillis}">--:--:--</span> 남음</span>
+                            <span class="ml-auto text-xs" th:text="${p.offer.deal.remaining} + '개 남음 · 1회 ' + ${p.offer.deal.maxPerOrder} + '개까지'"></span>
+                        </a>
+                        <div class="mb-2">
+                            <del class="text-sm text-gray-500" th:text="${#numbers.formatInteger(p.offer.salePrice, 3, 'COMMA')} + '원'">판매가</del>
+                            <p class="flex items-baseline gap-2.5 text-[28px] font-bold md:text-[32px]">
+                                <span class="text-brand-600" th:text="${p.offer.deal.discountRate} + '%'">20%</span>
+                                <span><span th:text="${#numbers.formatInteger(p.offer.deal.dealPrice, 3, 'COMMA')}">0</span>원</span></p>
+                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100">
+                                <div class="h-full bg-brand-600" th:style="'width:' + ${p.offer.deal.soldPercent} + '%'"></div></div>
+                            <p class="mt-1 text-xs text-gray-500"
+                               th:text="${p.offer.deal.soldPercent} + '% 판매됨'"></p>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${p.offer.deal == null}">
+                    <del th:if="${p.offer.hasDiscount()}" class="text-sm text-gray-500" th:text="${#numbers.formatInteger(p.offer.listPrice, 3, 'COMMA')} + '원'">정가</del>
+                    <p class="flex items-baseline gap-2.5 text-[28px] font-bold md:text-[32px]">
+                        <span th:if="${p.offer.hasDiscount()}" class="text-brand-600" th:text="${p.offer.discountRate} + '%'">10%</span>
+                        <span><span th:text="${#numbers.formatInteger(p.offer.salePrice, 3, 'COMMA')}">0</span>원</span>
+                    </p>
+                    </th:block>
+                    <!-- 회원가는 조건(유료 멤버십)을 함께 표시한다 (레퍼런스 13장 공정위 사례) -->
+                    <a th:if="${p.offer.plusPrice != null}" th:href="@{/plus}" class="mt-2 inline-flex flex-wrap items-center gap-1.5 text-sm">
+                        <span class="badge bg-sea-100 py-1 text-sea-700">양팡플러스</span>
+                        <b class="text-plus" th:text="'회원가 ' + ${#numbers.formatInteger(p.offer.plusPrice, 3, 'COMMA')} + '원'">회원가</b>
+                        <span class="text-xs text-gray-500" th:text="|월 ${#numbers.formatInteger(policy['PLUS_MONTHLY_FEE'], 1, 'COMMA')}원 유료 멤버십 회원 전용 ›|">유료 멤버십</span>
+                    </a>
+                    <!-- 사업자 회원가 (비즈 회원에게만) -->
+                    <p th:if="${p.offer.bizPrice != null and bizViewer}" class="mt-2 flex flex-wrap items-center gap-1.5 text-sm">
+                        <span class="badge bg-gray-900 py-1 text-white">비즈</span>
+                        <b th:text="'사업자 회원가 ' + ${#numbers.formatInteger(p.offer.bizPrice, 3, 'COMMA')} + '원'">사업자가</b>
+                        <span class="text-xs text-gray-500">장바구니·주문서에 자동 적용 · 세금계산서 요청 가능</span>
+                    </p>
+                    <p th:if="${p.offer.bizPrice != null and !bizViewer}" class="mt-1 text-xs text-gray-500">사업자 회원가가 있는 상품이에요 (비즈 회원 전용)</p>
+                </div>
+
+                <!-- 쿠폰 받기 (기획서 P-06) -->
+                <details class="mt-4 rounded-2xl border border-dashed border-brand-400 bg-white px-4 py-3 text-sm">
+                    <summary class="cursor-pointer font-bold text-brand-700">이 상품 쿠폰 받기</summary>
+                    <div class="mt-2" th:attr="hx-get=@{/products/{id}/coupons(id=${p.productId})}" hx-trigger="toggle from:closest details once" hx-swap="innerHTML">
+                        <p class="text-xs text-gray-400">불러오는 중...</p>
+                    </div>
+                </details>
+
+                <!-- 배송 -->
+                <div class="card mt-4 space-y-1.5 px-5 py-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="badge"
+                              th:classappend="${p.offer.deliveryType == 'FRESH'} ? 'bg-fresh/10 text-fresh'
+                                : (${p.offer.deliveryType == 'SELLER'} ? 'bg-gray-100 text-gray-600' : 'bg-sea-100 text-sea-700')"
+                              th:text="${p.offer.deliveryLabel}">양팡배송</span>
+                        <span class="font-bold"
+                              th:classappend="${p.offer.deliveryType == 'SELLER'} ? 'text-gray-700' : 'text-arrival'"
+                              th:text="${p.offer.arrivalText}">내일 도착 보장</span>
+                        <span th:if="${p.offer.deliveryType == 'GLOBAL'}" class="text-xs text-gray-500">해외 배송</span>
+                    </div>
+                    <p th:if="${p.offer.cutoffText != null}" class="text-xs text-gray-500">
+                        <b class="text-brand-600" th:text="${p.offer.cutoffText}">5시간 내 주문 시</b>
+                    </p>
+                    <p class="text-xs text-gray-500" th:text="${p.offer.shippingText}">배송비</p>
+                    <p th:if="${p.offer.deliveryType == 'GLOBAL'}" class="text-xs text-gray-500">🌏 양팡직구: 주문할 때 <b>개인통관고유부호</b>가 필요해요 · <span th:text="|단순 변심 반품은 해외 반송비 ${#numbers.formatInteger(policy['GLOBAL_RETURN_FEE'], 1, 'COMMA')}원|">해외 반송비</span></p>
+                    <p class="text-xs text-gray-500">판매자: <b class="text-gray-700" th:text="${p.offer.sellerName}">양팡</b>
+                        <span th:text="'(' + ${p.offer.sellerTypeLabel} + ')'"></span>
+                        <button th:if="${p.offer.offerCount > 1}" type="button" class="ml-1 font-bold text-sea-600 underline underline-offset-4"
+                                th:attr="hx-get=@{/products/offers(itemId=${p.offer.itemId})}" hx-target="#other-offers-slot" hx-swap="innerHTML"
+                                th:text="'다른 판매자 보기 (' + ${p.offer.offerCount - 1} + ')'">다른 판매자 보기</button></p>
+                    <div id="other-offers-slot"></div>
+                </div>
+
+                <!-- 옵션 -->
+                <div th:if="${p.hasOptions()}" class="mt-5 space-y-4">
+                    <div>
+                        <p class="mb-2.5 text-sm font-bold"><span th:text="${p.option1Name}">색상</span> ·
+                            <span class="font-normal text-gray-600" th:text="${p.offer.optionText}">옵션</span></p>
+                        <div class="flex flex-wrap gap-2">
+                            <a th:each="o : ${p.option1Choices}" th:href="@{/products/{id}(id=${p.productId}, item=${o.itemId})}"
+                               hx-select="#buy-box" hx-target="#buy-box" hx-swap="outerHTML" hx-push-url="true"
+                               th:attr="hx-get=@{/products/{id}(id=${p.productId}, item=${o.itemId})}"
+                               class="rounded-full border bg-white px-4 py-2.5 text-sm"
+                               th:classappend="${o.selected} ? 'border-brand-600 font-bold text-brand-700 ring-1 ring-brand-600'
+                                    : (${o.soldOut} ? 'border-gray-200 text-gray-400 line-through' : 'border-gray-200 hover:border-gray-400')"
+                               th:text="${o.value}">값</a>
+                        </div>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(p.option2Choices)}">
+                        <p class="mb-2.5 text-sm font-bold" th:text="${p.option2Name}">사이즈</p>
+                        <div class="flex flex-wrap gap-2">
+                            <a th:each="o : ${p.option2Choices}" th:href="@{/products/{id}(id=${p.productId}, item=${o.itemId})}"
+                               hx-select="#buy-box" hx-target="#buy-box" hx-swap="outerHTML" hx-push-url="true"
+                               th:attr="hx-get=@{/products/{id}(id=${p.productId}, item=${o.itemId})}"
+                               class="min-w-12 rounded-full border bg-white px-4 py-2.5 text-center text-sm"
+                               th:classappend="${o.selected} ? 'border-brand-600 font-bold text-brand-700 ring-1 ring-brand-600'
+                                    : (${o.soldOut} ? 'border-gray-200 text-gray-400 line-through' : 'border-gray-200 hover:border-gray-400')"
+                               th:text="${o.value}">값</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 수량 / 버튼 -->
+                <!-- 장바구니 담기: htmx로 보내고 결과를 토스트로 / 바로구매: 일반 POST로 주문서 이동 -->
+                <form id="buy-form" th:action="@{/checkout/direct}" method="post" class="mt-5">
+                    <input type="hidden" name="vendorItemId" th:value="${p.offer.vendorItemId}">
+                    <div th:if="${p.offer.soldOut}" class="rounded-full bg-gray-100 py-3.5 text-center font-bold text-gray-600">
+                        일시품절된 옵션입니다
+                    </div>
+                    <th:block th:unless="${p.offer.soldOut}">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-12 items-center rounded-full border border-gray-200 bg-white" data-qty>
+                                <button type="button" class="h-full w-11 text-lg text-gray-700" data-qty-minus aria-label="수량 줄이기">−</button>
+                                <input type="number" name="quantity" value="1" min="1" th:max="${p.offer.maxQuantity}"
+                                       class="h-full w-10 bg-transparent text-center text-sm font-bold outline-none" aria-label="수량">
+                                <button type="button" class="h-full w-11 text-lg text-gray-700" data-qty-plus aria-label="수량 늘리기">+</button>
+                            </div>
+                            <span class="text-xs text-gray-500" th:if="${p.offer.stock <= 10}"
+                                  th:text="'품절 임박 · ' + ${p.offer.stock} + '개 남음'">재고</span>
+                        </div>
+                        <div class="mt-4 hidden gap-2 md:flex">
+                            <button type="button" hx-post="/cart/items" hx-include="#buy-form" hx-target="#toast"
+                                    class="btn-secondary h-[52px] flex-1 text-base">장바구니 담기</button>
+                            <button type="submit" class="btn-primary h-[52px] flex-1 text-base">바로 구매</button>
+                            <button th:replace="~{my/wishlist :: heart}" th:with="productId=${p.productId}"></button>
+                        </div>
+                    </th:block>
+                    <div class="mt-3 flex gap-2 text-sm text-gray-500">
+                        <button type="button" class="underline-offset-4 hover:text-gray-900 hover:underline" data-copy-url>링크 복사</button>
+                        <button sec:authorize="isAuthenticated()" type="button" class="underline-offset-4 hover:text-gray-900 hover:underline"
+                                th:attr="hx-post=@{/partners/links},hx-vals=|{&quot;productId&quot;: ${p.productId}}|"
+                                hx-target="#partners-link" hx-swap="innerHTML" hx-include="none">파트너스 링크</button>
+                    </div>
+                </form>
+                <div id="partners-link"></div>
+
+                <!-- 정기배송 (P-10): 재구매 주기가 있는 카테고리 상품만 -->
+                <form th:if="${subscribable and !p.offer.soldOut}" th:action="@{/subscriptions/new}" method="get"
+                      class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm">
+                    <input type="hidden" name="vendorItemId" th:value="${p.offer.vendorItemId}">
+                    <p class="font-bold text-emerald-800">정기배송 <span class="font-normal" th:text="|· 상품 금액 ${policy['SUBSCRIPTION_DISCOUNT_PERCENT']}% 할인, 자동 주문|">할인</span></p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <select name="cycle" class="input h-9 w-auto py-0 text-sm" aria-label="배송 주기">
+                            <option value="1">1주마다</option>
+                            <option value="2" selected>2주마다</option>
+                            <option value="4">4주마다</option>
+                        </select>
+                        <select name="quantity" class="input h-9 w-auto py-0 text-sm" aria-label="정기배송 수량">
+                            <option th:each="q : ${#numbers.sequence(1, p.offer.maxQuantity lt 10 ? p.offer.maxQuantity : 10)}" th:value="${q}" th:text="${q} + '개'">1개</option>
+                        </select>
+                        <button class="btn-outline h-9 border-emerald-600 bg-white px-4 text-emerald-700">정기배송 신청</button>
+                    </div>
+                </form>
+
+                <!-- 모바일 하단 고정 구매바 (기획서 P-11) -->
+                <div th:unless="${p.offer.soldOut}"
+                     class="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-gray-200 bg-white px-4 pb-5 pt-3 md:hidden">
+                    <button type="button" hx-post="/cart/items" hx-include="#buy-form" hx-target="#toast"
+                            class="btn-secondary h-12 flex-1 text-[15px]">장바구니</button>
+                    <button type="submit" form="buy-form" class="btn-primary h-12 flex-1 text-[15px]">바로 구매</button>
+                    <button th:replace="~{my/wishlist :: heart}" th:with="productId=${p.productId}"></button>
+                </div>
+            </section>
+        </div>
+
+        <!-- 탭 -->
+        <nav class="sticky top-[112px] z-20 mt-12 grid grid-cols-4 border-b border-gray-200 bg-cream/95 text-center text-sm backdrop-blur md:top-[149px] md:text-base">
+            <a href="#detail" class="-mb-px border-b-[3px] border-brand-600 py-3.5 font-bold text-brand-600">상품 정보</a>
+            <a href="#reviews" class="py-3.5 text-gray-700 hover:text-gray-900">상품평</a>
+            <a href="#qna" class="py-3.5 text-gray-700 hover:text-gray-900">상품문의</a>
+            <a href="#policy" class="py-3.5 text-gray-700 hover:text-gray-900">배송·반품</a>
+        </nav>
+
+        <section id="detail" class="scroll-mt-32 py-8">
+            <div class="card mx-auto max-w-3xl p-6 text-sm leading-relaxed text-gray-700 md:p-10" th:utext="${p.descriptionHtml}">상세</div>
+            <div class="mx-auto mt-8 max-w-3xl">
+                <h3 class="mb-2 font-bold">필수 표기정보</h3>
+                <table class="w-full border-t border-gray-300 text-sm">
+                    <tr th:each="e : ${p.notice}" class="border-b border-gray-200">
+                        <th class="w-40 bg-gray-50 px-3 py-2 text-left font-medium text-gray-600" th:text="${e.key}">항목</th>
+                        <td class="px-3 py-2" th:text="${e.value}">값</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="reviews" class="scroll-mt-32 border-t border-gray-200 py-8">
+            <h2 class="section-title mb-4">상품평</h2>
+            <!-- AI 리뷰 요약 (M4 ⑧, API 키가 있고 리뷰 5개 이상일 때. 결과는 DB에 캐시) -->
+            <div th:if="${aiEnabled and p.reviewCount >= 5}" class="mb-4"
+                 th:attr="hx-get=@{/products/{id}/review-summary(id=${p.productId})}" hx-trigger="load" hx-swap="outerHTML">
+                <p class="rounded-2xl bg-violet-50/60 p-4 text-sm text-violet-700">✨ AI가 리뷰를 요약하는 중...</p>
+            </div>
+            <!-- 화면이 열린 뒤 htmx로 불러온다 -->
+            <div th:attr="hx-get=@{/products/{id}/reviews(id=${p.productId})}" hx-trigger="load" hx-swap="outerHTML">
+                <p class="py-8 text-center text-sm text-gray-400">상품평을 불러오는 중...</p>
+            </div>
+        </section>
+
+        <section id="qna" class="scroll-mt-32 border-t border-gray-200 py-8">
+            <h2 class="section-title mb-4">상품문의</h2>
+            <div th:attr="hx-get=@{/products/{id}/inquiries(id=${p.productId})}" hx-trigger="revealed" hx-swap="outerHTML">
+                <p class="py-8 text-center text-sm text-gray-400">상품문의를 불러오는 중...</p>
+            </div>
+        </section>
+
+        <section id="policy" class="scroll-mt-32 border-t border-gray-200 py-8 text-sm text-gray-700">
+            <h2 class="section-title mb-4">배송 · 교환 · 반품 안내</h2>
+            <ul class="list-disc space-y-1 pl-5">
+                <li th:text="${p.offer.shippingText}">배송비</li>
+                <li th:text="|단순 변심 반품: 상품 수령 후 ${policy['RETURN_WINDOW_DAYS']}일 이내 (양팡플러스 회원의 양팡배송 상품은 ${policy['PLUS_RETURN_WINDOW_DAYS']}일 무료 반품)|">반품 기간</li>
+                <li>상품 불량·오배송: 판매자 부담으로 교환·반품</li>
+                <li>반품 불가: 사용·훼손된 상품, 신선식품, 주문 제작 상품</li>
+            </ul>
+            <h3 class="mb-2 mt-6 font-bold">판매자 정보 (가짜 정보)</h3>
+            <table class="w-full border-t border-gray-300">
+                <tr class="border-b border-gray-200"><th class="w-40 bg-gray-50 px-3 py-2 text-left font-medium text-gray-600">상호</th><td class="px-3 py-2" th:text="${p.offer.sellerName}"></td></tr>
+                <tr class="border-b border-gray-200"><th class="bg-gray-50 px-3 py-2 text-left font-medium text-gray-600">대표자</th><td class="px-3 py-2" th:text="${p.offer.sellerCeo}"></td></tr>
+                <tr class="border-b border-gray-200"><th class="bg-gray-50 px-3 py-2 text-left font-medium text-gray-600">사업자등록번호</th><td class="px-3 py-2" th:text="${p.offer.sellerBusinessNo}"></td></tr>
+                <tr class="border-b border-gray-200"><th class="bg-gray-50 px-3 py-2 text-left font-medium text-gray-600">사업장 소재지</th><td class="px-3 py-2" th:text="${p.offer.sellerAddress}"></td></tr>
+                <tr class="border-b border-gray-200"><th class="bg-gray-50 px-3 py-2 text-left font-medium text-gray-600">연락처</th><td class="px-3 py-2" th:text="${p.offer.sellerPhone}"></td></tr>
+            </table>
+        </section>
+
+        <!-- 이 상품을 본 회원들이 함께 본 상품 (M4 ②) -->
+        <section th:if="${!#lists.isEmpty(coViewed)}" class="border-t border-gray-200 py-8" aria-labelledby="co-viewed">
+            <h2 id="co-viewed" class="section-title mb-5">이 상품을 본 분들이 함께 본 상품</h2>
+            <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:gap-5 md:px-0">
+                <th:block th:each="card : ${coViewed}">
+                    <div class="w-36 shrink-0 md:w-44"><a th:replace="~{fragments/product-card :: card(${card})}"></a></div>
+                </th:block>
+            </div>
+        </section>
+
+        <!-- 같은 카테고리 인기 상품 -->
+        <section th:if="${!#lists.isEmpty(p.related)}" class="border-t border-gray-200 py-8">
+            <h2 class="section-title mb-5">이 카테고리 인기 상품</h2>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 md:gap-x-5 lg:grid-cols-6">
+                <th:block th:each="card : ${p.related}">
+                    <a th:replace="~{fragments/product-card :: card(${card})}"></a>
+                </th:block>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

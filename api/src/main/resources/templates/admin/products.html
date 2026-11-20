@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'products')}">
+<head><title>상품 관리 - YangPang 관리자</title></head>
+<body>
+<main>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-bold">상품 관리 <span class="text-base font-normal text-gray-500" th:text="${products.totalElements} + '개'">0개</span></h1>
+        <a th:href="@{/admin/products/new}" class="btn-primary">+ 직매입 상품 등록</a>
+    </div>
+    <form th:action="@{/admin/products}" method="get" class="mb-4 flex flex-wrap gap-2">
+        <input name="q" th:value="${q}" placeholder="상품명·브랜드·상품번호" class="input max-w-xs bg-white">
+        <select name="status" class="input w-auto bg-white">
+            <option value="">전체 상태</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}">상태</option>
+        </select>
+        <button class="btn-outline">검색</button>
+    </form>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[720px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="px-4 py-2">번호</th><th class="px-4 py-2">상품명</th><th class="px-4 py-2">카테고리</th>
+                <th class="px-4 py-2 text-right">대표 판매가</th><th class="px-4 py-2">배송</th><th class="px-4 py-2">상태</th>
+                <th class="px-4 py-2 text-right">판매량</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="p : ${products.content}" class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-gray-500" th:text="${p.id}">1</td>
+                <td class="px-4 py-2"><a th:href="@{/admin/products/{id}(id=${p.id})}" class="font-medium text-brand-700 hover:underline" th:text="${p.name}">상품</a>
+                    <span th:if="${p.brand != null}" class="block text-xs text-gray-400" th:text="${p.brand.name}"></span></td>
+                <td class="px-4 py-2 text-gray-600" th:text="${p.category.name}">카테고리</td>
+                <td class="px-4 py-2 text-right" th:text="${#numbers.formatInteger(p.repSalePrice, 1, 'COMMA')} + '원'">0원</td>
+                <td class="px-4 py-2" th:text="${p.repDeliveryType != null} ? ${p.repDeliveryType.label()} : '-'">양팡배송</td>
+                <td class="px-4 py-2">
+                    <span class="badge" th:classappend="${p.status.name() == 'ON_SALE'} ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-500'" th:text="${p.status}">ON_SALE</span>
+                    <span th:if="${p.soldOut}" class="badge bg-red-50 text-sale">품절</span></td>
+                <td class="px-4 py-2 text-right text-gray-600" th:text="${#numbers.formatInteger(p.salesCount, 1, 'COMMA')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <nav th:if="${products.totalPages > 1}" class="mt-4 flex flex-wrap gap-1">
+        <a th:each="n : ${pageNumbers}"
+           th:href="@{/admin/products(q=${q}, status=${status}, page=${n})}" th:text="${n}"
+           class="min-w-8 rounded px-2.5 py-1.5 text-center"
+           th:classappend="${n == products.number + 1} ? 'bg-gray-900 text-white' : 'bg-white hover:bg-gray-50'">1</a>
+    </nav>
+</main>
+</body>
+</html>

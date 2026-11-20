@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'catalog')}">
+<head><title>기존 상품에 판매 추가 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <h1 class="mb-1 text-xl font-bold">기존 상품에 판매 추가</h1>
+    <p class="mb-4 text-xs text-gray-500">같은 상품은 하나의 상품 페이지를 함께 씁니다(카탈로그 매칭). 내 가격·재고만 정하면 되고, 아이템 위너가 되면 구매자에게 기본으로 보입니다.</p>
+    <form th:action="@{/seller/catalog}" method="get" class="mb-4 flex gap-2">
+        <input name="q" th:value="${q}" placeholder="상품명 또는 상품번호" class="input max-w-sm bg-white" autofocus>
+        <button class="btn-outline bg-white">찾기</button>
+    </form>
+    <p th:if="${q != null and #lists.isEmpty(rows)}" class="rounded-lg bg-white p-8 text-center text-gray-400">
+        찾는 상품이 없어요. <a th:href="@{/seller/products/new}" class="text-indigo-700 underline">새 상품으로 등록</a>하세요</p>
+    <div th:unless="${#lists.isEmpty(rows)}" class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[820px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="px-3 py-2">상품 / 옵션</th><th class="px-3 py-2">현재 위너</th><th class="px-3 py-2">판매자 수</th><th class="px-3 py-2">내 판매 조건</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="r : ${rows}">
+                <td class="max-w-xs px-3 py-2"><a th:href="@{/products/{id}(id=${r.productId})}" target="_blank" class="line-clamp-1 font-medium hover:underline" th:text="${r.productName}"></a>
+                    <span class="text-xs text-gray-400" th:text="'#' + ${r.productId} + ' · ' + ${r.optionText ?: '단일 상품'}"></span></td>
+                <td class="px-3 py-2"><span th:if="${r.winnerPrice != null}" th:text="${#numbers.formatInteger(r.winnerPrice, 1, 'COMMA')} + '원'" class="font-bold"></span>
+                    <span class="block text-xs text-gray-400" th:text="${r.winnerSeller}"></span></td>
+                <td class="px-3 py-2" th:text="${r.offerCount}">1</td>
+                <td class="px-3 py-2">
+                    <span th:if="${r.mine}" class="badge bg-indigo-50 text-indigo-700">판매 중</span>
+                    <form th:unless="${r.mine}" th:action="@{/seller/catalog/offer}" method="post" class="flex items-center gap-2">
+                        <input type="hidden" name="itemId" th:value="${r.itemId}">
+                        <input name="listPrice" type="number" min="0" step="10" th:value="${r.winnerPrice}" class="input h-8 w-24" title="정가">
+                        <input name="salePrice" type="number" min="100" step="10" th:value="${r.winnerPrice}" class="input h-8 w-24" title="판매가" required>
+                        <input name="stock" type="number" min="1" value="30" class="input h-8 w-16" title="재고">
+                        <button class="btn-primary h-8 bg-indigo-700 px-3 hover:bg-indigo-800">판매하기</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

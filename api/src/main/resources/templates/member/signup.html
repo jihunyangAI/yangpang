@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>회원가입 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 py-10">
+    <div class="mx-auto w-full max-w-md px-4">
+        <h1 class="mb-2 text-center text-3xl"><span th:replace="~{fragments/logo :: logo('')}"></span> <span class="align-middle text-xl font-black text-gray-800">회원가입</span></h1>
+        <p class="mb-6 text-center text-xs text-gray-500">연구용 데모입니다. 실제 개인정보 대신 가짜 정보를 입력해 주세요.</p>
+
+        <form th:action="@{/signup}" th:object="${form}" method="post" novalidate
+              class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 text-sm">
+
+            <div th:if="${#fields.hasGlobalErrors()}" class="rounded bg-red-50 p-2 text-red-700">
+                <p th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+            </div>
+
+            <label class="block">
+                <span class="mb-1 block font-semibold">이메일(아이디)</span>
+                <input type="email" th:field="*{email}" class="input" placeholder="example@example.com" autocomplete="username">
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </label>
+
+            <label class="block">
+                <span class="mb-1 block font-semibold">비밀번호</span>
+                <input type="password" th:field="*{password}" class="input" placeholder="영문·숫자·특수문자 포함 8~20자" autocomplete="new-password">
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </label>
+
+            <label class="block">
+                <span class="mb-1 block font-semibold">비밀번호 확인</span>
+                <input type="password" th:field="*{passwordConfirm}" class="input" autocomplete="new-password">
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
+            </label>
+
+            <label class="block">
+                <span class="mb-1 block font-semibold">이름</span>
+                <input type="text" th:field="*{name}" class="input" autocomplete="name">
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+            </label>
+
+            <div>
+                <span class="mb-1 block font-semibold">휴대폰 번호</span>
+                <div class="flex gap-2">
+                    <input type="tel" th:field="*{phone}" class="input" placeholder="010-0000-0000" autocomplete="tel">
+                    <button type="button" class="btn-outline shrink-0"
+                            hx-post="/signup/phone-code" hx-include="[name='phone'], [name='_csrf']" hx-target="#phone-msg">인증번호 받기</button>
+                </div>
+                <div class="mt-2 flex gap-2">
+                    <input type="text" th:field="*{verificationCode}" class="input" placeholder="인증번호 6자리" inputmode="numeric" maxlength="6">
+                    <button type="button" class="btn-outline shrink-0"
+                            hx-post="/signup/phone-confirm" hx-include="[name='phone'], [name='verificationCode'], [name='_csrf']"
+                            hx-target="#phone-msg">확인</button>
+                </div>
+                <div id="phone-msg" class="mt-1"></div>
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('verificationCode')}" th:errors="*{verificationCode}"></span>
+            </div>
+
+            <label class="block">
+                <span class="mb-1 block text-sm font-semibold">친구초대 코드 <span class="font-normal text-gray-400">(선택)</span></span>
+                <input type="text" th:field="*{inviteCode}" maxlength="12" class="input uppercase" placeholder="초대받은 코드 8자리">
+                <span class="mt-1 block text-xs text-gray-500" th:text="|코드를 넣고 가입하면 양팡캐시 ${#numbers.formatInteger(policy['INVITE_REWARD_CASH'], 1, 'COMMA')}원을 바로 드려요 (모의)|">혜택</span>
+                <span class="mt-1 block text-xs text-sale" th:if="${#fields.hasErrors('inviteCode')}" th:errors="*{inviteCode}"></span>
+            </label>
+
+            <fieldset class="space-y-2 rounded-md bg-gray-50 p-3" data-agree-all-group>
+                <label class="flex items-center gap-2 border-b border-gray-200 pb-2 font-bold">
+                    <input type="checkbox" class="h-4 w-4 accent-brand-600" data-agree-all> 모두 동의합니다
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" th:field="*{agreeTerms}" class="h-4 w-4 accent-brand-600"> [필수] 이용약관 동의
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" th:field="*{agreePrivacy}" class="h-4 w-4 accent-brand-600"> [필수] 개인정보 수집·이용 동의
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" th:field="*{agreeAge}" class="h-4 w-4 accent-brand-600"> [필수] 만 14세 이상입니다
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" th:field="*{agreeMarketing}" class="h-4 w-4 accent-brand-600"> [선택] 마케팅 정보 수신 동의
+                </label>
+                <p class="text-xs text-sale" th:if="${#fields.hasErrors('agreeTerms')}" th:errors="*{agreeTerms}"></p>
+                <p class="text-xs text-sale" th:if="${#fields.hasErrors('agreePrivacy')}" th:errors="*{agreePrivacy}"></p>
+                <p class="text-xs text-sale" th:if="${#fields.hasErrors('agreeAge')}" th:errors="*{agreeAge}"></p>
+            </fieldset>
+
+            <button type="submit" class="btn-primary w-full py-3 text-base">가입하기</button>
+            <p class="text-center text-xs text-gray-500">이미 회원이신가요? <a th:href="@{/login}" class="text-brand-700 underline">로그인</a></p>
+        </form>
+    </div>
+</main>
+</body>
+</html>

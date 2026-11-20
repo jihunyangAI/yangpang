@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>양팡직구 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <section class="bg-gradient-to-r from-sea-700 to-sea-500 py-8 text-white md:py-10">
+        <div class="container-page">
+            <p class="text-sm font-semibold opacity-90">🌏 양팡직구</p>
+            <h1 class="mt-1 text-2xl font-black md:text-4xl">해외 상품을 국내 배송처럼</h1>
+            <p class="mt-2 text-sm opacity-90"><b th:text="${arrival}">도착 예정</b> · <span th:text="|${#numbers.formatInteger(policy['SHIPPING_FREE_THRESHOLD'], 1, 'COMMA')}원 이상 무료배송|">무료배송</span>(플러스 회원 항상 무료) ·
+                주문할 때 개인통관고유부호 필요 · 연구용 모의 상품</p>
+        </div>
+    </section>
+
+    <nav class="container-page no-scrollbar flex gap-2 overflow-x-auto py-4">
+        <a th:href="@{/global}" class="shrink-0 rounded-full px-4 py-1.5 text-sm"
+           th:classappend="${category == null} ? 'bg-sea-700 text-white' : 'bg-gray-100 hover:bg-gray-200'">전체</a>
+        <a th:each="c : ${tops}" th:href="@{/global(category=${c.id})}" th:text="${c.name}"
+           class="shrink-0 rounded-full px-4 py-1.5 text-sm"
+           th:classappend="${category == c.id} ? 'bg-sea-700 text-white' : 'bg-gray-100 hover:bg-gray-200'">분류</a>
+    </nav>
+
+    <section class="container-page pb-8">
+        <div class="mb-3 flex items-end justify-between">
+            <h2 class="text-lg font-bold">직구 많이 산 상품</h2>
+            <a th:href="@{/search(delivery='GLOBAL', sort='sales')}" class="text-sm text-gray-500 hover:underline">전체보기</a>
+        </div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-5">
+            <th:block th:each="card : ${best}"><a th:replace="~{fragments/product-card :: card(${card})}"></a></th:block>
+        </div>
+        <p th:if="${#lists.isEmpty(best)}" class="py-10 text-center text-sm text-gray-400">이 분류에는 직구 상품이 없어요</p>
+    </section>
+
+    <section th:unless="${#lists.isEmpty(latest)}" class="container-page pb-10">
+        <h2 class="mb-3 text-lg font-bold">새로 들어온 직구 상품</h2>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-5">
+            <th:block th:each="card : ${latest}"><a th:replace="~{fragments/product-card :: card(${card})}"></a></th:block>
+        </div>
+    </section>
+</main>
+</body>
+</html>

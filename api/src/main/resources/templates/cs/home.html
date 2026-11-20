@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>고객센터 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-6 md:py-8">
+        <h1 class="text-xl font-bold md:text-2xl">고객센터</h1>
+        <p class="mt-1 text-sm text-gray-500">연구용 가상 쇼핑몰이라 상담원은 운영자 계정이 대신해요. 모든 결제·환불은 모의예요.</p>
+
+        <form th:action="@{/cs}" method="get" class="mt-4 flex max-w-xl gap-2">
+            <input type="hidden" name="category" th:if="${category != null}" th:value="${category.name()}">
+            <input type="search" name="q" th:value="${q}" class="input h-11 flex-1" placeholder="궁금한 내용을 검색해 보세요 (예: 반품비)" aria-label="FAQ 검색">
+            <button class="btn-primary h-11 px-5">검색</button>
+        </form>
+
+        <!-- 바로가기 -->
+        <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <a th:href="@{/my/orders}" class="rounded-2xl bg-white p-4 hover:ring-2 hover:ring-brand-200"><p class="text-xl">📦</p><p class="mt-1 font-bold">주문·배송 조회</p></a>
+            <a th:href="@{/my/claims}" class="rounded-2xl bg-white p-4 hover:ring-2 hover:ring-brand-200"><p class="text-xl">↩️</p><p class="mt-1 font-bold">취소·반품·교환</p></a>
+            <a th:href="@{/cs/inquiries/new}" class="rounded-2xl bg-white p-4 hover:ring-2 hover:ring-brand-200"><p class="text-xl">✉️</p><p class="mt-1 font-bold">1:1 문의하기</p>
+                <p class="text-xs text-gray-500">로그인 후 · 운영자가 답변</p></a>
+            <button th:if="${aiEnabled}" type="button" onclick="var d=document.getElementById('chat-widget'); if(d){d.open=true;}"
+                    class="rounded-2xl bg-violet-50 p-4 text-left hover:ring-2 hover:ring-violet-200"><p class="text-xl">✨</p><p class="mt-1 font-bold text-violet-900">AI 쇼핑 도우미</p>
+                <p class="text-xs text-violet-700">바로 답해요 · 틀릴 수 있어요</p></button>
+            <a th:unless="${aiEnabled}" th:href="@{/cs/inquiries}" class="rounded-2xl bg-white p-4 hover:ring-2 hover:ring-brand-200"><p class="text-xl">🗂️</p><p class="mt-1 font-bold">내 문의 내역</p></a>
+        </div>
+
+        <!-- FAQ -->
+        <section class="mt-6">
+            <h2 class="mb-3 text-lg font-bold">자주 묻는 질문</h2>
+            <nav class="no-scrollbar mb-3 flex gap-2 overflow-x-auto text-sm">
+                <a th:href="@{/cs(q=${q})}" class="shrink-0 rounded-full px-4 py-1.5"
+                   th:classappend="${category == null} ? 'bg-gray-900 text-white' : 'bg-white hover:bg-gray-100'">많이 본 질문</a>
+                <a th:each="c : ${categories}" th:href="@{/cs(category=${c.name()}, q=${q})}" th:text="${c.label()}" class="shrink-0 rounded-full px-4 py-1.5"
+                   th:classappend="${category == c} ? 'bg-gray-900 text-white' : 'bg-white hover:bg-gray-100'">분류</a>
+            </nav>
+            <p th:if="${#lists.isEmpty(faqs)}" class="rounded-2xl bg-white py-10 text-center text-sm text-gray-500">
+                찾는 질문이 없어요. <a th:href="@{/cs/inquiries/new}" class="text-brand-700 underline">1:1 문의</a>로 물어봐 주세요.</p>
+            <div class="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white">
+                <details th:each="f : ${faqs}" class="group px-4 py-3 text-sm">
+                    <summary class="flex cursor-pointer list-none items-start gap-2 font-medium [&::-webkit-details-marker]:hidden"
+                             th:attr="hx-post=@{/cs/faq/{id}/view(id=${f.id})}" hx-trigger="click once" hx-swap="none">
+                        <b class="text-brand-600">Q</b>
+                        <span class="flex-1" th:text="${f.question}">질문</span>
+                        <span class="shrink-0 text-xs text-gray-400" th:text="${f.category.label()}">분류</span>
+                    </summary>
+                    <p class="mt-2 flex gap-2 rounded-xl bg-gray-50 p-3 leading-relaxed text-gray-700"><b class="text-sea-600">A</b><span th:text="${f.answer}">답변</span></p>
+                </details>
+            </div>
+        </section>
+
+        <p class="mt-6 text-center text-sm text-gray-500" sec:authorize="isAuthenticated()">
+            <a th:href="@{/cs/inquiries}" class="underline">내 1:1 문의 내역 보기</a></p>
+    </div>
+</main>
+</body>
+</html>

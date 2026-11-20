@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>취소·반품·교환 내역 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('claims')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <h1 class="mb-4 text-xl font-bold">취소·반품·교환 내역</h1>
+            <ul class="space-y-3">
+                <li th:each="c : ${claims.content}" class="rounded-lg border border-gray-200 p-4">
+                    <div class="flex items-center justify-between">
+                        <p><b th:text="${c.type.label()}">반품</b> <span class="text-gray-400" th:text="${@fmt.date(c.requestedAt)}"></span></p>
+                        <a th:href="@{/my/claims/{no}(no=${c.claimNo})}" class="text-brand-700 hover:underline">상세 ›</a>
+                    </div>
+                    <p class="mt-1 font-semibold" th:classappend="${c.status.name() == 'COMPLETED'} ? 'text-gray-900' : 'text-arrival'"
+                       th:text="${c.status.label()}">상태</p>
+                    <p class="mt-1 line-clamp-1 text-gray-600"
+                       th:text="${c.items[0].orderItem.productName} + (${#lists.size(c.items) > 1} ? ' 외 ' + ${#lists.size(c.items) - 1} + '건' : '')">상품</p>
+                    <p th:if="${c.type.name() != 'EXCHANGE'}" class="text-xs text-gray-500"
+                       th:text="'환불 ' + ${#numbers.formatInteger(c.refundAmount, 1, 'COMMA')} + '원' + (${c.status.name() == 'COMPLETED'} ? ' (완료)' : ' (예정)')"></p>
+                </li>
+            </ul>
+            <p th:if="${claims.isEmpty()}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">취소·반품·교환 내역이 없어요</p>
+        </section>
+    </div>
+</main>
+</body>
+</html>

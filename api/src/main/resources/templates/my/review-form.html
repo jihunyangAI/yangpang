@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>리뷰 쓰기 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('reviews')}"></nav>
+        <section class="min-w-0 max-w-xl flex-1 text-sm">
+            <h1 class="mb-4 text-xl font-bold" th:text="${review == null} ? '리뷰 쓰기' : '리뷰 수정'">리뷰</h1>
+            <div class="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                <img th:src="${imageUrl}" alt="" class="h-14 w-14 rounded object-cover">
+                <div><p th:text="${productName}">상품</p><p class="text-xs text-gray-500" th:text="${optionText}"></p></div>
+            </div>
+
+            <form th:action="${review == null} ? @{/my/reviews/new} : @{/my/reviews/{id}/edit(id=${review.id})}" method="post" class="space-y-5">
+                <input type="hidden" name="orderItemId" th:if="${review == null}" th:value="${orderItemId}">
+
+                <div>
+                    <p class="mb-2 font-bold">상품은 만족하셨나요?</p>
+                    <!-- 별점: 오른쪽부터 배치하고 peer로 앞쪽 별까지 색칠 (CSS만 사용) -->
+                    <div class="flex flex-row-reverse justify-end gap-1 text-3xl">
+                        <th:block th:each="s : ${ {5,4,3,2,1} }">
+                            <input type="radio" name="rating" th:id="'star' + ${s}" th:value="${s}" class="peer sr-only"
+                                   th:checked="${review != null and review.rating == s}" required>
+                            <label th:for="'star' + ${s}" class="cursor-pointer text-gray-300 peer-checked:text-star hover:text-star"
+                                   th:title="${s} + '점'">★</label>
+                        </th:block>
+                    </div>
+                </div>
+
+                <div th:each="q : ${questions}">
+                    <p class="mb-2 font-semibold" th:text="${q.name}">사이즈</p>
+                    <div class="flex flex-wrap gap-2">
+                        <label th:each="c : ${q.choices}" class="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+                            <input type="radio" th:name="'s:' + ${q.name}" th:value="${c}" th:checked="${answers[q.name] == c}" class="sr-only">
+                            <span th:text="${c}">선택</span>
+                        </label>
+                    </div>
+                </div>
+
+                <label class="block"><span class="mb-1 block font-bold">한 줄 요약 <span class="font-normal text-gray-400">(선택)</span></span>
+                    <input name="headline" maxlength="60" class="input" th:value="${review?.headline}"></label>
+                <label class="block"><span class="mb-1 block font-bold">자세한 리뷰</span>
+                    <textarea name="content" rows="6" minlength="10" maxlength="2000" required class="input"
+                              placeholder="10자 이상 써 주세요. 사용해 보니 어땠나요?" th:text="${review?.content}"></textarea></label>
+                <label class="block"><span class="mb-1 block font-bold">사진 <span class="font-normal text-gray-400">(연구용 데모라 실제 업로드 대신 가짜 사진이 붙어요)</span></span>
+                    <select name="photoCount" class="input w-40">
+                        <option th:each="n : ${ {0,1,2,3} }" th:value="${n}" th:text="${n == 0} ? '사진 없음' : '가짜 사진 ' + ${n} + '장'"
+                                th:selected="${review != null and review.photoCount == n}">0</option>
+                    </select></label>
+
+                <p th:if="${review == null}" class="text-xs text-gray-500">배송완료 상품에 리뷰를 쓰면 구매확정이 함께 처리돼요.</p>
+                <button class="btn-primary h-12 w-full text-base" th:text="${review == null} ? '등록하기' : '수정하기'">등록</button>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

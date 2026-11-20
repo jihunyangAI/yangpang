@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>메일함 (모의) - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('emails')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <h1 class="text-xl font-bold">메일함 <span class="text-base font-normal text-gray-500">(모의)</span></h1>
+            <p class="mb-4 mt-1 text-xs text-gray-500">YangPang이 보낸 것처럼 기록한 이메일이에요. 실제 메일은 보내지 않아요.
+                받을지 말지는 <a th:href="@{/my/notifications}" class="underline">알림 설정</a>에서 바꿀 수 있어요.
+                <span th:if="${unread > 0}" class="font-bold text-brand-700" th:text="'· 안 읽은 메일 ' + ${unread} + '통'"></span></p>
+            <p th:if="${#lists.isEmpty(mails)}" class="rounded-lg border border-gray-200 py-12 text-center text-gray-500">받은 메일이 없어요</p>
+            <ul class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                <li th:each="m : ${mails}">
+                    <a th:href="@{/my/emails/{id}(id=${m.id})}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                        <span class="h-2 w-2 shrink-0 rounded-full" th:classappend="${m.read} ? 'bg-transparent' : 'bg-brand-600'"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate" th:classappend="${m.read} ? 'text-gray-600' : 'font-bold'" th:text="${m.subject}">제목</span>
+                            <span class="block truncate text-xs text-gray-400" th:text="${m.body}">본문</span>
+                        </span>
+                        <span class="shrink-0 text-xs text-gray-400" th:text="${@fmt.dateTime(m.createdAt)}">시각</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

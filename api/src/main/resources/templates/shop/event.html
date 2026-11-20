@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>기획전 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <section class="bg-gradient-to-r py-10 text-white md:py-14" th:classappend="${e.theme.gradient()}">
+        <div class="container-page">
+            <p class="text-xs font-semibold opacity-80"><a th:href="@{/events}" class="hover:underline">기획전</a> ›
+                <span th:text="${@fmt.date(e.startsAt)} + ' ~ ' + ${@fmt.date(e.endsAt)}"></span></p>
+            <h1 class="mt-2 text-3xl font-black md:text-5xl" th:text="${e.title}">기획전</h1>
+            <p class="mt-2 opacity-90" th:text="${e.subtitle}"></p>
+            <p class="mt-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold">
+                종료까지 <span data-countdown th:attr="data-countdown=${endsInMillis}">--:--:--</span></p>
+        </div>
+    </section>
+
+    <div class="container-page py-6">
+        <div th:if="${coupon != null}" class="mb-6 max-w-md">
+            <p class="mb-2 text-sm font-bold">이 기획전 전용 쿠폰</p>
+            <div th:replace="~{coupon/zone :: card(${coupon})}"></div>
+        </div>
+
+        <!-- 구역 바로가기 -->
+        <nav th:if="${#lists.size(sections) > 1}" class="no-scrollbar sticky top-0 z-10 -mx-4 mb-4 flex gap-2 overflow-x-auto bg-white px-4 py-2">
+            <a th:each="s, st : ${sections}" th:href="'#section-' + ${st.index}" th:text="${s.title}"
+               class="shrink-0 rounded-full bg-gray-100 px-4 py-1.5 text-sm hover:bg-gray-200">구역</a>
+        </nav>
+
+        <section th:each="s, st : ${sections}" th:id="'section-' + ${st.index}" class="scroll-mt-16 pb-10">
+            <h2 class="mb-3 text-lg font-bold" th:text="${s.title}">구역</h2>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                <th:block th:each="card : ${s.cards}"><a th:replace="~{fragments/product-card :: card(${card})}"></a></th:block>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

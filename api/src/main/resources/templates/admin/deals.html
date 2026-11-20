@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'deals')}">
+<head><title>오늘의 특가 - YangPang 관리자</title></head>
+<body>
+<main>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-bold">오늘의 특가</h1>
+        <div class="flex gap-2">
+            <a th:href="@{/deals}" target="_blank" class="btn-outline bg-white">고객 화면 ›</a>
+            <form th:action="@{/admin/deals/rotate}" method="post"><button class="btn-outline bg-white">자동 특가 지금 교체</button></form>
+        </div>
+    </div>
+
+    <form th:action="@{/admin/deals}" method="post" class="mb-6 flex flex-wrap items-end gap-2 rounded-lg bg-white p-4">
+        <label><span class="mb-1 block text-xs text-gray-500">판매 오퍼 번호</span><input name="vendorItemId" type="number" required class="input w-32"></label>
+        <label><span class="mb-1 block text-xs text-gray-500">특가</span><input name="dealPrice" type="number" min="10" step="10" required class="input w-28"></label>
+        <label><span class="mb-1 block text-xs text-gray-500">한정 수량</span><input name="quantity" type="number" min="1" value="10" required class="input w-24"></label>
+        <label><span class="mb-1 block text-xs text-gray-500">1회 최대</span><input name="maxPerOrder" type="number" min="1" value="1" class="input w-20"></label>
+        <label><span class="mb-1 block text-xs text-gray-500">1인 최대</span><input name="maxPerMember" type="number" min="1" value="1" class="input w-20"></label>
+        <button class="btn-primary">특가 등록</button>
+        <p class="w-full text-xs text-gray-400">지금부터 오늘 특가 기간이 끝날 때(다음 07:00)까지 진행됩니다. 판매 오퍼 번호는 상품 관리 상세에서 확인할 수 있어요.</p>
+    </form>
+
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[900px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="px-3 py-2">번호</th><th class="px-3 py-2">상품</th><th class="px-3 py-2 text-right">특가 / 판매가</th>
+                <th class="px-3 py-2">판매</th><th class="px-3 py-2 text-right">주문</th><th class="px-3 py-2">제한</th><th class="px-3 py-2">기간</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="d : ${deals}" th:with="live=${!d.starts_at.toInstant().isAfter(now) and d.ends_at.toInstant().isAfter(now)}"
+                th:classappend="${live} ? '' : 'text-gray-400'">
+                <td class="px-3 py-2"><span th:text="${d.id}"></span>
+                    <span class="badge" th:classappend="${d.source == 'ADMIN'} ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'" th:text="${d.source == 'ADMIN'} ? '직접' : '자동'"></span></td>
+                <td class="max-w-xs px-3 py-2"><a th:href="@{/products/{id}(id=${d.product_id})}" target="_blank" class="line-clamp-1 hover:underline" th:text="${d.name}"></a>
+                    <span class="text-xs text-gray-400" th:text="'오퍼 #' + ${d.vendor_item_id}"></span></td>
+                <td class="px-3 py-2 text-right"><b class="text-sale" th:text="${#numbers.formatInteger(d.deal_price, 1, 'COMMA')}"></b>
+                    <span class="block text-xs" th:text="${#numbers.formatInteger(d.sale_price, 1, 'COMMA')}"></span></td>
+                <td class="px-3 py-2"><b th:text="${d.sold} + ' / ' + ${d.quantity}"></b>
+                    <span th:if="${d.sold >= d.quantity}" class="badge bg-red-50 text-sale">완판</span></td>
+                <td class="px-3 py-2 text-right" th:text="${d.orders}"></td>
+                <td class="px-3 py-2 text-xs" th:text="'1회 ' + ${d.max_per_order} + ' · 1인 ' + ${d.max_per_member}"></td>
+                <td class="px-3 py-2 text-xs" th:text="${@fmt.dateTime(d.starts_at.toInstant())} + ' ~ ' + ${@fmt.dateTime(d.ends_at.toInstant())}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(deals)}" class="p-8 text-center text-gray-400">특가가 없어요. 시뮬레이터가 07:00에 자동으로 고르거나 "지금 교체"를 눌러 보세요</p>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>브랜드관 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <section class="bg-gray-900 py-8 text-white">
+        <div class="container-page flex items-center gap-4">
+            <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-2xl font-black text-gray-900"
+                  th:text="${#strings.substring(brand.name, 0, 1)}">브</span>
+            <div>
+                <p class="text-xs text-gray-400"><a th:href="@{/brands}" class="hover:underline">브랜드관</a> ›</p>
+                <h1 class="text-2xl font-black" th:text="${brand.name}">브랜드</h1>
+                <p class="mt-1 text-sm text-gray-300"
+                   th:text="'상품 ' + ${stats.products} + '개 · 리뷰 ' + ${#numbers.formatInteger(stats.reviews, 1, 'COMMA')} + '개' + (${stats.rating != null} ? ' · 평균 ★' + ${stats.rating} : '')"></p>
+            </div>
+        </div>
+    </section>
+    <div class="container-page py-5">
+        <nav class="no-scrollbar mb-4 flex gap-3 overflow-x-auto border-b border-gray-100 pb-3 text-sm">
+            <a th:each="s : ${sorts}" th:href="@{/brands/{id}(id=${brand.id}, sort=${#strings.toLowerCase(s.name())})}" th:text="${s.label()}"
+               class="shrink-0" th:classappend="${s == sort} ? 'font-bold text-brand-700' : 'text-gray-500 hover:text-gray-900'">정렬</a>
+        </nav>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <th:block th:each="card : ${cards}"><a th:replace="~{fragments/product-card :: card(${card})}"></a></th:block>
+        </div>
+        <nav th:if="${products.totalPages > 1}" class="mt-8 flex flex-wrap justify-center gap-1">
+            <a th:each="n : ${pageNumbers}" th:href="@{/brands/{id}(id=${brand.id}, sort=${#strings.toLowerCase(sort.name())}, page=${n})}" th:text="${n}"
+               class="min-w-9 rounded px-3 py-1.5 text-center text-sm"
+               th:classappend="${n == products.number + 1} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">1</a>
+        </nav>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>리뷰 관리 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('reviews')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <h1 class="mb-4 text-xl font-bold">리뷰 관리</h1>
+            <div class="mb-4 flex border-b border-gray-200">
+                <a th:href="@{/my/reviews(tab='writable')}" class="px-4 py-2"
+                   th:classappend="${tab == 'writable'} ? 'border-b-2 border-gray-900 font-bold' : 'text-gray-500'"
+                   th:text="'작성 가능한 리뷰 ' + ${#lists.size(writable)}">작성 가능</a>
+                <a th:href="@{/my/reviews(tab='written')}" class="px-4 py-2"
+                   th:classappend="${tab == 'written'} ? 'border-b-2 border-gray-900 font-bold' : 'text-gray-500'"
+                   th:text="'작성한 리뷰 ' + ${#lists.size(written)}">작성한</a>
+            </div>
+
+            <ul th:if="${tab == 'writable'}" class="space-y-2">
+                <li th:each="i : ${writable}" class="flex items-center gap-3 rounded-lg border border-gray-200 p-3">
+                    <img th:src="${i.imageUrl}" alt="" class="h-14 w-14 rounded object-cover">
+                    <div class="min-w-0 flex-1">
+                        <p class="line-clamp-1" th:text="${i.productName}">상품</p>
+                        <p class="text-xs text-gray-500" th:text="${(i.optionText ?: '단일 상품') + ' · ' + i.status.label()}"></p>
+                    </div>
+                    <a th:href="@{/my/reviews/new(orderItem=${i.id})}" class="btn-primary shrink-0 py-1.5">리뷰 쓰기</a>
+                </li>
+                <li th:if="${#lists.isEmpty(writable)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">작성할 리뷰가 없어요</li>
+            </ul>
+
+            <ul th:if="${tab == 'written'}" class="space-y-3">
+                <li th:each="r : ${written}" class="rounded-lg border border-gray-200 p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="stars"><span th:style="'width:' + ${r.ratingPercent()} + '%'"></span></span>
+                        <span class="text-xs text-gray-400" th:text="${@fmt.date(r.createdAt)} + (${r.status == 'HIDDEN'} ? ' · 신고로 숨김' : '')"></span>
+                    </div>
+                    <a th:href="@{/products/{id}(id=${r.productId})} + '#reviews'" class="mt-1 block text-xs text-brand-700 hover:underline" th:text="'상품 #' + ${r.productId} + (${r.optionText != null} ? ' · ' + ${r.optionText} : '')"></a>
+                    <p th:if="${r.headline != null}" class="mt-1 font-bold" th:text="${r.headline}"></p>
+                    <p class="mt-1 line-clamp-3 whitespace-pre-line text-gray-700" th:text="${r.content}"></p>
+                    <p class="mt-2 text-xs text-gray-500" th:text="'도움돼요 ' + ${r.helpfulCount} + (${r.photoCount > 0} ? ' · 사진 ' + ${r.photoCount} + '장' : '')"></p>
+                    <div class="mt-2 flex gap-3 text-xs">
+                        <a th:href="@{/my/reviews/{id}/edit(id=${r.id})}" class="text-brand-700 hover:underline">수정</a>
+                        <form th:action="@{/my/reviews/{id}/delete(id=${r.id})}" method="post"><button class="text-gray-400 hover:text-sale">삭제</button></form>
+                    </div>
+                </li>
+                <li th:if="${#lists.isEmpty(written)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">작성한 리뷰가 없어요</li>
+            </ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 상품 상세 "다른 판매자 보기" (같은 옵션의 모든 판매 오퍼, 가격 낮은 순) -->
+<div th:fragment="offers" id="other-offers" class="mt-2 rounded-lg border border-gray-200 text-sm">
+    <div class="flex items-center justify-between border-b border-gray-100 px-3 py-2">
+        <b th:text="'이 옵션을 파는 판매자 ' + ${#lists.size(offers)} + '곳'">판매자</b>
+        <button type="button" class="text-xs text-gray-400" onclick="this.closest('#other-offers').remove()">닫기 ✕</button>
+    </div>
+    <ul class="divide-y divide-gray-100">
+        <li th:each="o : ${offers}" class="flex items-center justify-between gap-2 px-3 py-2">
+            <div class="min-w-0">
+                <p><b th:text="${#numbers.formatInteger(o.salePrice, 1, 'COMMA')} + '원'"></b>
+                    <span th:if="${o.winner}" class="badge ml-1 bg-brand-50 text-brand-700">대표 판매자</span>
+                    <span th:if="${o.refurb()}" class="badge ml-1 bg-gray-900 text-white" th:text="${o.conditionLabel()}">리퍼</span></p>
+                <p class="text-xs text-gray-500">
+                    <span th:text="${o.sellerName}"></span> ·
+                    <span th:text="${o.deliveryLabel()}"></span>
+                    <span th:if="${o.deliveryType == 'SELLER'}" th:text="' · 배송비 ' + ${#numbers.formatInteger(o.shippingFee, 1, 'COMMA')} + '원'"></span>
+                </p>
+            </div>
+            <form th:if="${o.stock > 0}" hx-post="/cart/items" hx-target="#toast" class="shrink-0">
+                <input type="hidden" name="vendorItemId" th:value="${o.vendorItemId}">
+                <input type="hidden" name="quantity" value="1">
+                <button class="btn-outline h-8 px-3 text-xs">담기</button>
+            </form>
+            <span th:unless="${o.stock > 0}" class="shrink-0 text-xs text-gray-400">품절</span>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

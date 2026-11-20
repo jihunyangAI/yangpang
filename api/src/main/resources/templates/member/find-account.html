@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>아이디·비밀번호 찾기 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 py-10">
+    <div class="mx-auto w-full max-w-sm px-4 text-sm">
+        <h1 class="mb-5 text-center text-2xl font-black">아이디·비밀번호 찾기</h1>
+
+        <nav class="mb-4 grid grid-cols-2 gap-1 rounded-full bg-gray-100 p-1 text-center">
+            <a th:href="@{/find-account(tab='id')}" class="rounded-full py-2" th:classappend="${tab == 'id'} ? 'bg-white font-bold shadow-sm' : 'text-gray-500'">아이디(이메일) 찾기</a>
+            <a th:href="@{/find-account(tab='pw')}" class="rounded-full py-2" th:classappend="${tab == 'pw'} ? 'bg-white font-bold shadow-sm' : 'text-gray-500'">비밀번호 재설정</a>
+        </nav>
+
+        <div class="rounded-3xl bg-white p-5">
+            <!-- 아이디 찾기 결과 -->
+            <th:block th:if="${found != null}">
+                <p class="font-bold">휴대폰 인증으로 찾은 아이디</p>
+                <p th:if="${#lists.isEmpty(found)}" class="mt-3 rounded-md bg-gray-50 p-3 text-gray-600">입력한 이름과 휴대폰 번호로 가입한 회원이 없어요.</p>
+                <ul class="mt-3 space-y-2">
+                    <li th:each="f : ${found}" class="flex justify-between rounded-md bg-gray-50 p-3">
+                        <b class="font-mono" th:text="${f.maskedEmail}">ab***@example.com</b><span class="text-xs text-gray-500" th:text="${f.joinedAt} + ' 가입'"></span></li>
+                </ul>
+                <div class="mt-4 flex gap-2">
+                    <a th:href="@{/login}" class="btn-primary h-10 flex-1">로그인</a>
+                    <a th:href="@{/find-account(tab='pw')}" class="btn-outline h-10 flex-1">비밀번호 재설정</a>
+                </div>
+            </th:block>
+
+            <!-- 새 비밀번호 -->
+            <form th:if="${reset != null}" th:action="@{/find-account/reset}" method="post" class="space-y-3">
+                <p><b th:text="${email}">ab***@example.com</b> 계정의 새 비밀번호를 정해 주세요. (5분 안에)</p>
+                <input type="password" name="password" required autocomplete="new-password" placeholder="새 비밀번호 (영문·숫자·특수문자 8~20자)" class="input" aria-label="새 비밀번호">
+                <input type="password" name="passwordConfirm" required autocomplete="new-password" placeholder="새 비밀번호 확인" class="input" aria-label="새 비밀번호 확인">
+                <button class="btn-primary h-11 w-full">비밀번호 바꾸기</button>
+            </form>
+
+            <!-- 1단계: 정보 입력 -->
+            <form th:if="${found == null and reset == null}" th:action="@{/find-account/code}" method="post" class="space-y-3">
+                <input type="hidden" name="mode" th:value="${tab}">
+                <input th:if="${tab == 'id'}" name="name" required maxlength="20" class="input" placeholder="이름" aria-label="이름" th:value="${s?.name}">
+                <input th:if="${tab == 'pw'}" type="email" name="email" required class="input" placeholder="가입한 이메일" aria-label="이메일" th:value="${s?.email}">
+                <div class="flex gap-2">
+                    <input name="phone" required inputmode="tel" maxlength="13" class="input" placeholder="휴대폰 번호 (010-0000-0000)" aria-label="휴대폰 번호" th:value="${s?.phone}">
+                    <button class="btn-outline h-11 shrink-0 px-3" th:text="${s != null} ? '다시 받기' : '인증번호 받기'">인증번호 받기</button>
+                </div>
+            </form>
+
+            <!-- 2단계: 인증번호 -->
+            <form th:if="${found == null and reset == null and s != null and s.code != null}" th:action="@{/find-account/verify}" method="post" class="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                <p class="rounded-md bg-brand-50 p-3 text-brand-700">[모의 SMS] 인증번호 <b class="tracking-widest" th:text="${s.code}">123456</b> 가 발송되었어요 (3분 안에 입력, 실제 문자는 보내지 않아요)</p>
+                <div class="flex gap-2">
+                    <input name="code" required inputmode="numeric" maxlength="6" class="input" placeholder="인증번호 6자리" aria-label="인증번호">
+                    <button class="btn-primary h-11 shrink-0 px-4">확인</button>
+                </div>
+            </form>
+        </div>
+        <p class="mt-4 text-center text-xs text-gray-500"><a th:href="@{/login}" class="underline">로그인으로 돌아가기</a> · <a th:href="@{/cs}" class="underline">고객센터</a></p>
+    </div>
+</main>
+</body>
+</html>

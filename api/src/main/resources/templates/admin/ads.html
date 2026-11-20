@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'ads')}">
+<head><title>광고 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-5">
+    <div class="flex flex-wrap items-end justify-between gap-2">
+        <div>
+            <h1 class="text-xl font-bold">검색 광고 현황</h1>
+            <p class="text-xs text-gray-500">판매자 키워드 CPC 광고 (모의 과금). 광고비는 판매자 정산에서 차감돼요.</p>
+        </div>
+        <nav class="flex gap-1 text-xs">
+            <a th:each="x : ${ {7, 14, 30} }" th:href="@{/admin/ads(days=${x})}" class="rounded-full px-3 py-1.5"
+               th:classappend="${days == x} ? 'bg-brand-600 text-white' : 'bg-white hover:bg-gray-50'" th:text="'최근 ' + ${x} + '일'">기간</a>
+        </nav>
+    </div>
+
+    <dl class="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">노출</dt><dd class="text-xl font-black" th:text="${#numbers.formatInteger(total.impressions, 1, 'COMMA')}">0</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">클릭 (클릭률)</dt><dd class="text-xl font-black" th:text="${#numbers.formatInteger(total.clicks, 1, 'COMMA')}">0</dd>
+            <dd class="text-xs text-gray-400" th:text="${#numbers.formatDecimal(total.ctr(), 1, 2)} + '%'"></dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">광고 매출 (양팡)</dt><dd class="text-xl font-black text-brand-700" th:text="${#numbers.formatInteger(total.cost, 1, 'COMMA')} + '원'">0</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">전환 주문</dt><dd class="text-xl font-black" th:text="${total.conversions}">0</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">광고주 판매(전환)</dt><dd class="text-xl font-black" th:text="${#numbers.formatInteger(total.sales, 1, 'COMMA')} + '원'">0</dd></div>
+    </dl>
+
+    <section class="rounded-lg bg-white p-4">
+        <h2 class="mb-3 font-bold">일별 광고비</h2>
+        <div class="flex h-32 items-end gap-1" role="img" aria-label="일별 광고비 막대">
+            <div th:each="d : ${daily}" class="flex-1 rounded-t bg-brand-500" th:style="'height:' + ${d.cost * 100 / maxCost} + '%; min-height:1px'"
+                 th:title="${#temporals.format(d.day, 'MM.dd')} + ' · ' + ${#numbers.formatInteger(d.cost, 1, 'COMMA')} + '원 · 클릭 ' + ${d.clicks}"></div>
+        </div>
+        <div class="mt-1 flex justify-between text-[10px] text-gray-400">
+            <span th:text="${#temporals.format(daily[0].day, 'MM.dd')}"></span><span th:text="${#temporals.format(daily[#lists.size(daily) - 1].day, 'MM.dd')}"></span></div>
+    </section>
+
+    <div class="grid gap-5 xl:grid-cols-[2fr_1fr]">
+        <section class="overflow-x-auto rounded-lg bg-white">
+            <h2 class="border-b border-gray-100 px-4 py-3 font-bold">광고비 많은 캠페인</h2>
+            <table class="w-full min-w-[640px] text-left text-xs">
+                <thead class="bg-gray-50 text-gray-500"><tr><th class="px-3 py-2">판매자 · 상품</th><th class="px-3 py-2 text-right">노출</th>
+                    <th class="px-3 py-2 text-right">클릭</th><th class="px-3 py-2 text-right">광고비</th><th class="px-3 py-2 text-right">전환</th>
+                    <th class="px-3 py-2 text-right">수익률</th></tr></thead>
+                <tbody class="divide-y divide-gray-100">
+                <tr th:each="c : ${campaigns}">
+                    <td class="px-3 py-2"><b th:text="${c.seller}"></b>
+                        <span th:if="${c.status != 'ACTIVE'}" class="badge ml-1 bg-gray-100 text-gray-500">멈춤</span>
+                        <a th:href="@{/products/{id}(id=${c.productId})}" class="block truncate text-gray-500 hover:underline" th:text="${c.product}"></a></td>
+                    <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(c.impressions, 1, 'COMMA')}"></td>
+                    <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(c.clicks, 1, 'COMMA')}"></td>
+                    <td class="px-3 py-2 text-right font-bold" th:text="${#numbers.formatInteger(c.cost, 1, 'COMMA')}"></td>
+                    <td class="px-3 py-2 text-right" th:text="${c.conversions}"></td>
+                    <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(c.roas(), 1, 'COMMA')} + '%'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="rounded-lg bg-white">
+            <h2 class="border-b border-gray-100 px-4 py-3 font-bold">키워드</h2>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-gray-500"><tr><th class="px-3 py-2">키워드</th><th class="px-3 py-2 text-right">광고주</th>
+                    <th class="px-3 py-2 text-right">최고 입찰</th><th class="px-3 py-2 text-right">광고비</th></tr></thead>
+                <tbody class="divide-y divide-gray-100">
+                <tr th:each="k : ${keywords}">
+                    <td class="px-3 py-2"><a th:href="@{/search(q=${k.keyword})}" class="hover:underline" th:text="${k.keyword}"></a></td>
+                    <td class="px-3 py-2 text-right" th:text="${k.advertisers}"></td>
+                    <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(k.maxBid, 1, 'COMMA')}"></td>
+                    <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(k.cost, 1, 'COMMA')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+</body>
+</html>

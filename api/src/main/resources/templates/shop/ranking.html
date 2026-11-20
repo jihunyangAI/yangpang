@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>양팡 랭킹 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-6">
+        <h1 class="text-2xl font-black">🏆 양팡 랭킹</h1>
+        <p class="mt-1 text-xs text-gray-500">판매량·조회·구매 전환·리뷰·가격·배송 속도·반품률을 함께 따져 매긴 순위예요. 10분마다 바뀌어요.
+            광고비를 받고 순위를 올려 주지 않아요.</p>
+        <nav class="no-scrollbar my-4 flex gap-2 overflow-x-auto">
+            <a th:href="@{/ranking}" class="shrink-0 rounded-full px-4 py-1.5 text-sm"
+               th:classappend="${category == null} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">전체</a>
+            <a th:each="c : ${categoryRoots}" th:href="@{/ranking(category=${c.id})}" th:text="${c.name}"
+               class="shrink-0 rounded-full px-4 py-1.5 text-sm"
+               th:classappend="${category == c.id} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">분류</a>
+        </nav>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div th:each="card, st : ${cards}" class="relative">
+                <span class="absolute left-0 top-0 z-10 flex h-8 w-8 items-center justify-center rounded-br-lg rounded-tl-lg text-sm font-black text-white"
+                      th:classappend="${st.count <= 3} ? 'bg-sale' : 'bg-gray-800/80'" th:text="${st.count}">1</span>
+                <a th:replace="~{fragments/product-card :: card(${card})}"></a>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

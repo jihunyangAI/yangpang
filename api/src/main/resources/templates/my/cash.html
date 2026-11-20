@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>양팡캐시 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('cash')}"></nav>
+        <section class="min-w-0 max-w-2xl flex-1 text-sm">
+            <h1 class="mb-4 text-xl font-bold">양팡캐시</h1>
+            <div class="rounded-lg bg-brand-50 p-5">
+                <p class="text-gray-600">사용 가능한 캐시</p>
+                <p class="mt-1 text-3xl font-extrabold text-brand-700" th:text="${#numbers.formatInteger(balance, 1, 'COMMA')} + '원'">0원</p>
+                <p th:if="${expiringSoon > 0}" class="mt-1 text-sm font-semibold text-sale"
+                   th:text="'30일 안에 소멸 예정 ' + ${#numbers.formatInteger(expiringSoon, 1, 'COMMA')} + '원 · 먼저 적립된 캐시부터 쓰여요'"></p>
+                <p class="mt-2 text-xs text-gray-500">유효기간: 적립 후 1년 · 적립: 양페이 결제 상품 구매확정 시 1% · 리뷰 50원(사진 리뷰 100원) · 배송 지연 보상 1,000원</p>
+            </div>
+            <ul class="mt-4 divide-y divide-gray-100">
+                <li th:each="e : ${entries}" class="flex items-center justify-between py-3">
+                    <div>
+                        <p th:text="${e.description}">내용</p>
+                        <p class="text-xs text-gray-400" th:text="${e.type.label()} + ' · ' + ${@fmt.dateTime(e.createdAt)}"></p>
+                    </div>
+                    <b th:classappend="${e.amount > 0} ? 'text-arrival' : 'text-gray-700'"
+                       th:text="(${e.amount > 0} ? '+' : '') + ${#numbers.formatInteger(e.amount, 1, 'COMMA')} + '원'">0원</b>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(entries)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">캐시 내역이 없어요</p>
+        </section>
+    </div>
+</main>
+</body>
+</html>

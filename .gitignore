@@ -1,0 +1,16 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.tools/
+.DS_Store
+*.log
+# Tailwind 결과물은 빌드 시 생성
+api/src/main/resources/static/css/app.css
+node_modules/
+.playwright-mcp/
+
+# 검사 스크립트 부산물
+__pycache__/
+tests/e2e/requests.jsonl

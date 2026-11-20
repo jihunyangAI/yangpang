@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>친구초대 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('invite')}"></nav>
+        <section class="min-w-0 flex-1 space-y-4 text-sm">
+            <div class="rounded-3xl bg-gradient-to-br from-sky-200 to-indigo-200 p-6">
+                <h1 class="text-xl font-black">💌 친구초대</h1>
+                <p class="mt-1 text-gray-800" th:with="r=${#numbers.formatInteger(policy['INVITE_REWARD_CASH'], 1, 'COMMA')}"
+                   th:text="|친구가 내 코드로 가입하면 친구에게 ${r}원, 친구가 처음 주문을 결제하면 나에게도 ${r}원 (양팡캐시, 모의). 한 달에 ${policy['INVITE_MONTHLY_LIMIT']}명까지 받아요.|">혜택</p>
+                <p class="mt-4 text-xs text-gray-600">내 초대 코드</p>
+                <p class="font-mono text-3xl font-black tracking-widest" th:text="${code}">ABCD2345</p>
+                <div class="mt-3 flex gap-2">
+                    <input readonly th:value="${link}" class="input h-10 min-w-0 flex-1 bg-white font-mono text-xs" aria-label="초대 링크">
+                    <button type="button" class="btn-primary h-10 shrink-0 px-4" th:attr="data-copy-text=${link}">링크 복사</button>
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white">
+                <p class="border-b border-gray-100 px-4 py-3 font-bold" th:text="|초대한 친구 ${#lists.size(invited)}명|">초대한 친구</p>
+                <p th:if="${#lists.isEmpty(invited)}" class="px-4 py-8 text-center text-gray-400">아직 초대한 친구가 없어요</p>
+                <ul class="divide-y divide-gray-100">
+                    <li th:each="f : ${invited}" class="flex items-center justify-between px-4 py-2">
+                        <span><b th:text="${f.maskedName}">김**</b> <span class="text-xs text-gray-400" th:text="${@fmt.date(f.joinedAt)} + ' 가입'"></span></span>
+                        <span class="text-xs" th:classappend="${f.status == 'REWARDED'} ? 'font-bold text-emerald-700' : 'text-gray-500'"
+                              th:text="${f.statusLabel()} + (${f.inviterReward > 0} ? ' · ' + ${#numbers.formatInteger(f.inviterReward, 1, 'COMMA')} + '원' : '')">상태</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

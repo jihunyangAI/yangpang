@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- ================= 헤더 (PC·모바일 공통) — 디자인 시안 C ================= -->
+<header th:fragment="header" class="sticky top-0 z-40 border-b border-gray-200 bg-cream/95 backdrop-blur">
+
+    <!-- PC 상단 유틸 바 -->
+    <div class="hidden md:block">
+        <div class="container-page flex h-8 items-center justify-end gap-4 text-xs text-gray-500">
+            <th:block sec:authorize="isAnonymous()">
+                <a th:href="@{/login}" class="hover:text-gray-900">로그인</a>
+                <a th:href="@{/signup}" class="hover:text-gray-900">회원가입</a>
+            </th:block>
+            <th:block sec:authorize="isAuthenticated()">
+                <span><b class="text-gray-800" sec:authentication="principal.name">회원</b>님</span>
+                <a th:if="${#authentication.principal.plus}" th:href="@{/my/plus}" class="badge bg-sea-100 text-sea-700">양팡플러스</a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="font-bold text-brand-700 hover:underline">관리자</a>
+                <a sec:authorize="hasRole('SELLER')" th:href="@{/seller}" class="font-bold text-sea-600 hover:underline">셀러센터</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="hover:text-gray-900">로그아웃</button>
+                </form>
+            </th:block>
+            <a th:href="@{/cs}" class="hover:text-gray-900">고객센터</a>
+        </div>
+    </div>
+
+    <div class="container-page flex h-14 items-center gap-3 md:h-[72px] md:gap-5">
+
+        <!-- 로고 -->
+        <a th:href="@{/}" class="shrink-0 text-[26px] md:text-[34px]" aria-label="YangPang 홈"><span th:replace="~{fragments/logo :: logo('')}"></span></a>
+
+        <!-- 카테고리 메가메뉴 (PC) -->
+        <div class="group relative hidden md:block">
+            <button type="button" class="flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-gray-800 ring-1 ring-gray-200 hover:ring-gray-300">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                카테고리
+            </button>
+            <div class="invisible absolute left-0 top-full z-50 flex pt-2 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                <ul class="w-52 rounded-l-3xl border border-gray-200 bg-white py-3 text-sm shadow-xl">
+                    <li th:each="top : ${categoryRoots}" class="group/top">
+                        <a th:href="@{/category/{id}(id=${top.id})}" th:text="${top.name}"
+                           class="block px-5 py-2 hover:bg-brand-50 hover:font-bold hover:text-brand-700">대분류</a>
+                        <!-- 하위 카테고리 패널 -->
+                        <div class="absolute left-52 top-2 hidden h-[calc(100%-0.5rem)] min-h-[480px] w-[580px] rounded-r-3xl border border-l-0 border-gray-200 bg-white p-7 shadow-xl group-hover/top:block">
+                            <p class="mb-5 font-serif text-lg font-bold" th:text="${top.name}">대분류</p>
+                            <div class="grid grid-cols-3 gap-6">
+                                <div th:each="mid : ${top.children}">
+                                    <a th:href="@{/category/{id}(id=${mid.id})}" th:text="${mid.name}"
+                                       class="mb-2 block font-bold text-gray-900 hover:text-brand-700">중분류</a>
+                                    <a th:each="small : ${mid.children}" th:href="@{/category/{id}(id=${small.id})}" th:text="${small.name}"
+                                       class="block py-1 text-gray-500 hover:text-brand-700 hover:underline">소분류</a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 검색 (PC: 가운데, 모바일: 아래 줄) -->
+        <form th:action="@{/search}" method="get" role="search" data-search-form
+              class="relative order-last hidden h-11 flex-1 items-center rounded-full border border-gray-200 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 md:order-none md:flex">
+            <select name="categoryId" aria-label="검색 카테고리"
+                    class="h-full rounded-l-full border-r border-gray-200 bg-transparent pl-4 pr-2 text-xs text-gray-600 outline-none">
+                <option value="">전체</option>
+                <option th:each="top : ${categoryRoots}" th:value="${top.id}" th:text="${top.name}">대분류</option>
+            </select>
+            <input type="search" name="q" th:value="${param.q}" placeholder="무엇을 찾으세요?" aria-label="상품 검색"
+                   class="h-full min-w-0 flex-1 bg-transparent px-4 text-sm outline-none" autocomplete="off"
+                   hx-get="/search/suggest" hx-trigger="input changed delay:200ms, focus" hx-target="#search-suggest"
+                   hx-sync="this:replace" aria-controls="search-suggest">
+            <button type="button" data-voice-search hidden class="mr-1 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900" aria-label="음성으로 검색" title="음성으로 검색">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            </button>
+            <a th:href="@{/search/image}" class="mr-1 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900" aria-label="이미지로 찾기" title="이미지로 찾기">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            </a>
+            <button type="submit" class="mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700" aria-label="검색">
+                <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
+            <!-- 자동완성·최근·인기 검색어 드롭다운 (htmx가 채움, app.js가 바깥 클릭 시 닫음) -->
+            <div id="search-suggest" class="absolute left-0 right-0 top-full z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg empty:hidden"></div>
+        </form>
+
+        <!-- 오른쪽 아이콘 -->
+        <nav class="ml-auto flex items-center gap-1 md:ml-0" aria-label="내 메뉴">
+            <a th:href="@{/my/notifications}" sec:authorize="isAuthenticated()" aria-label="알림"
+               class="relative flex h-11 w-11 items-center justify-center rounded-full text-gray-800 hover:bg-white">
+                <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+                <span th:if="${unreadNotifications > 0}" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}"
+                      class="absolute right-0.5 top-0.5 min-w-[18px] rounded-full bg-brand-600 px-1 text-center text-[10px] font-bold leading-[18px] text-white">0</span>
+            </a>
+            <a th:href="@{/my}" aria-label="마이양팡"
+               class="hidden h-11 w-11 items-center justify-center rounded-full text-gray-800 hover:bg-white md:flex">
+                <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            </a>
+            <!-- 장바구니: 모바일은 아이콘, PC는 청회색 알약 -->
+            <a th:href="@{/cart}" aria-label="장바구니"
+               class="relative flex h-11 w-11 items-center justify-center rounded-full text-gray-800 md:w-auto md:gap-1.5 md:bg-sea-600 md:px-4 md:text-sm md:font-bold md:text-white md:hover:bg-sea-700">
+                <svg class="h-[22px] w-[22px] md:h-5 md:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+                <span class="hidden md:inline">장바구니</span>
+                <span data-cart-count th:text="${cartCount}" th:classappend="${cartCount == 0} ? 'hidden'"
+                      class="absolute right-0.5 top-0.5 min-w-[18px] rounded-full bg-brand-600 px-1 text-center text-[10px] font-bold leading-[18px] text-white md:static md:bg-white md:text-sea-700">0</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- 모바일 검색 줄 -->
+    <div class="container-page pb-3 md:hidden">
+        <form th:action="@{/search}" method="get" role="search" data-search-form
+              class="relative flex h-11 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 focus-within:border-brand-500">
+            <svg class="h-[18px] w-[18px] shrink-0 text-sea-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" name="q" th:value="${param.q}" placeholder="무엇을 찾으세요?" aria-label="상품 검색"
+                   class="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" autocomplete="off"
+                   hx-get="/search/suggest" hx-trigger="input changed delay:200ms, focus" hx-target="#search-suggest-m"
+                   hx-sync="this:replace" aria-controls="search-suggest-m">
+            <button type="button" data-voice-search hidden class="shrink-0 text-gray-500" aria-label="음성으로 검색">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            </button>
+            <a th:href="@{/search/image}" class="shrink-0 text-gray-500" aria-label="이미지로 찾기">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            </a>
+            <div id="search-suggest-m" class="absolute left-0 right-0 top-full z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg empty:hidden"></div>
+        </form>
+    </div>
+
+    <!-- PC 메뉴 줄 -->
+    <nav class="hidden md:block" aria-label="주요 메뉴">
+        <div class="container-page flex h-11 items-center gap-7 text-[15px] font-medium">
+            <a th:each="m : ${ {
+                    {'오늘의 특가', '/deals'},
+                    {'양팡 랭킹', '/ranking'},
+                    {'프레시', '/fresh'},
+                    {'브랜드관', '/brands'},
+                    {'리퍼마켓', '/refurb'},
+                    {'양팡직구', '/global'},
+                    {'기획전', '/events'},
+                    {'쿠폰존', '/coupons'},
+                    {'양팡플러스', '/plus'} } }"
+               th:href="${m[1]}" th:text="${m[0]}"
+               class="flex h-full items-center border-b-2 hover:text-brand-600"
+               th:classappend="${#strings.startsWith(currentPath, m[1])} ? 'border-brand-600 font-bold text-brand-600' : 'border-transparent text-gray-800'">메뉴</a>
+        </div>
+    </nav>
+</header>
+
+<!-- ================= 모바일 하단 탭바: 화면 위에 떠 있는 알약 ================= -->
+<nav th:fragment="mobileTabBar" th:unless="${hideTabBar}" aria-label="하단 메뉴"
+     class="fixed inset-x-4 bottom-3 z-40 grid h-16 grid-cols-5 rounded-full bg-gray-900 px-1.5 text-[10px] shadow-lg shadow-gray-900/20 md:hidden">
+    <a th:each="t : ${ {
+            {'홈', '/', 'M4 11l8-7 8 7v9H4z'},
+            {'카테고리', '/categories', 'M4 6h16M4 12h16M4 18h10'},
+            {'검색', '/search', 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-3.5-3.5'},
+            {'찜', '/my/wishlist', 'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z'},
+            {'마이', '/my', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 4-6 8-6s8 2 8 6'} } }"
+       th:with="on=${t[1] == '/' ? currentPath == '/' : (t[1] == '/my' ? (#strings.startsWith(currentPath, '/my') and !#strings.startsWith(currentPath, '/my/wishlist')) : #strings.startsWith(currentPath, t[1]))}"
+       th:href="${t[1]}" class="flex flex-col items-center justify-center gap-0.5"
+       th:classappend="${on} ? 'font-bold text-brand-300' : 'font-medium text-gray-300'"
+       th:attr="aria-current=${on} ? 'page' : null">
+        <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path th:attr="d=${t[2]}"/></svg>
+        <span th:text="${t[0]}">탭</span>
+    </a>
+</nav>
+
+</body>
+</html>

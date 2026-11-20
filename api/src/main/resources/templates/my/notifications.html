@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>알림함 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('notifications')}"></nav>
+        <section class="min-w-0 max-w-2xl flex-1 text-sm">
+            <div class="mb-3 flex items-center justify-between">
+                <h1 class="text-xl font-bold">알림함</h1>
+                <form th:action="@{/my/notifications/read-all}" method="post">
+                    <input type="hidden" name="tab" th:value="${tab}">
+                    <button class="text-xs text-gray-500 underline">모두 읽음</button>
+                </form>
+            </div>
+            <nav class="no-scrollbar mb-3 flex gap-2 overflow-x-auto">
+                <a th:each="t : ${tabs}" th:href="${t[0] == 'all'} ? @{/my/notifications} : @{/my/notifications(tab=${t[0]})}" th:text="${t[1]}"
+                   class="shrink-0 rounded-full px-4 py-1.5"
+                   th:classappend="${tab == t[0]} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">탭</a>
+            </nav>
+
+            <p th:if="${items.totalElements == 0}" class="rounded-lg bg-gray-50 py-16 text-center text-gray-400">알림이 없어요</p>
+            <ul class="divide-y divide-gray-100 rounded-lg border border-gray-200" th:unless="${items.totalElements == 0}">
+                <li th:each="n : ${items.content}" class="flex items-start gap-3 px-4 py-3" th:classappend="${n.read} ? '' : 'bg-brand-50/40'">
+                    <a th:href="@{/my/notifications/{id}(id=${n.id})}" class="flex min-w-0 flex-1 items-start gap-3">
+                        <img th:if="${n.imageUrl != null}" th:src="${n.imageUrl}" alt="" class="h-12 w-12 shrink-0 rounded bg-gray-50 object-cover">
+                        <span th:unless="${n.imageUrl != null}" class="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-gray-100 text-xl" th:text="${n.type.icon()}"></span>
+                        <span class="min-w-0">
+                            <span class="text-xs text-gray-400"><span th:text="${n.type.label()}"></span> · <span th:text="${@fmt.dateTime(n.createdAt)}"></span></span>
+                            <b class="mt-0.5 block" th:classappend="${n.read} ? 'font-medium text-gray-600'">
+                                <span th:unless="${n.read}" class="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-sale align-middle"></span><span th:text="${n.title}">알림</span></b>
+                            <span class="mt-0.5 line-clamp-2 block text-xs text-gray-500" th:text="${n.body}"></span>
+                        </span>
+                    </a>
+                    <form th:action="@{/my/notifications/{id}/delete(id=${n.id})}" method="post">
+                        <button class="text-gray-300 hover:text-gray-500" aria-label="알림 삭제">✕</button></form>
+                </li>
+            </ul>
+            <nav th:if="${items.totalPages > 1}" class="mt-4 flex flex-wrap justify-center gap-1">
+                <a th:each="p : ${pageNumbers}" th:href="@{/my/notifications(tab=${tab}, page=${p})}" th:text="${p}"
+                   class="min-w-8 rounded px-2.5 py-1.5 text-center"
+                   th:classappend="${p == items.number + 1} ? 'bg-gray-900 text-white' : 'bg-gray-100'">1</a>
+            </nav>
+
+            <form th:action="@{/my/notifications/settings}" method="post" class="mt-8 rounded-lg bg-gray-50 p-4">
+                <p class="font-bold">알림 받기 설정</p>
+                <p class="mt-1 text-xs text-gray-500">사이트 안 알림함에 쌓이고, 이메일은 보낸 것처럼 <a th:href="@{/my/emails}" class="underline">메일함(모의)</a>에만 남아요. 문자·푸시는 보내지 않아요 (연구용 데모)</p>
+                <label class="mt-3 flex items-center gap-2"><input type="checkbox" name="delivery" value="true" th:checked="${notifyDelivery}" class="h-4 w-4 accent-brand-600"> 배송 진행 알림 (출고·배송완료)</label>
+                <label class="mt-2 flex items-center gap-2"><input type="checkbox" name="wish" value="true" th:checked="${notifyWish}" class="h-4 w-4 accent-brand-600"> 찜한 상품 가격 인하·재입고 알림</label>
+                <label class="mt-2 flex items-center gap-2"><input type="checkbox" name="email" value="true" th:checked="${emailNotify}" class="h-4 w-4 accent-brand-600"> 이메일로도 받기 (모의)</label>
+                <p class="ml-6 text-xs text-gray-400" th:text="${marketingAgreed} ? '혜택·찜 알림 이메일도 받아요 (마케팅 수신 동의함)' : '혜택·찜 알림 이메일은 마케팅 수신에 동의해야 받아요 (회원정보에서 바꿀 수 있어요)'">마케팅</p>
+                <p class="mt-2 text-xs text-gray-400">주문·결제·취소·환불처럼 꼭 알아야 하는 알림은 알림함에서 끌 수 없어요</p>
+                <button class="btn-outline mt-3 h-9 bg-white">저장</button>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

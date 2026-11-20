@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- AI 리뷰 요약 (상품 상세에서 htmx로 불러옴) -->
+<div th:fragment="box" id="ai-review-summary">
+    <div th:if="${s != null}" class="rounded-2xl border border-violet-200 bg-violet-50/60 p-4 text-sm">
+        <p class="flex items-center gap-1.5 font-bold text-violet-900">✨ AI 리뷰 요약
+            <span class="text-xs font-normal text-violet-700/70" th:text="'리뷰 ' + ${s.reviewCount} + '개 기준 · Claude가 요약 · 틀릴 수 있어요'">기준</span></p>
+        <p class="mt-2 text-gray-800" th:text="${s.summary}">요약</p>
+        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+            <ul th:unless="${#lists.isEmpty(s.pros)}" class="space-y-0.5 text-xs text-gray-700">
+                <li th:each="x : ${s.pros}" th:text="'👍 ' + ${x}">장점</li></ul>
+            <ul th:unless="${#lists.isEmpty(s.cons)}" class="space-y-0.5 text-xs text-gray-700">
+                <li th:each="x : ${s.cons}" th:text="'🤔 ' + ${x}">아쉬운 점</li></ul>
+        </div>
+    </div>
+    <p th:if="${s == null and error != null}" class="rounded-2xl bg-gray-50 p-3 text-xs text-gray-500" th:text="'AI 리뷰 요약: ' + ${error}">오류</p>
+</div>
+</body>
+</html>

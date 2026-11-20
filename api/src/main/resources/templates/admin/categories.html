@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'categories')}">
+<head><title>카테고리 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-3xl">
+    <h1 class="mb-1 text-xl font-bold">카테고리</h1>
+    <p class="mb-4 text-xs text-gray-500">하위 추가는 상품이 없는 카테고리에서만 됩니다. 바꾼 내용은 쇼핑몰 메뉴에 바로 반영됩니다.</p>
+
+    <form th:action="@{/admin/categories}" method="post" class="mb-4 flex gap-2 rounded-lg bg-white p-4">
+        <input name="name" required placeholder="새 대분류 이름" class="input">
+        <button class="btn-primary shrink-0">대분류 추가</button>
+    </form>
+
+    <div class="space-y-2">
+        <details th:each="top : ${roots}" class="rounded-lg bg-white">
+            <summary class="cursor-pointer px-4 py-3 font-bold"><span th:text="${top.name}">대분류</span>
+                <span class="font-normal text-gray-400" th:text="'#' + ${top.id}"></span></summary>
+            <div class="border-t border-gray-100 px-4 py-3">
+                <div th:replace="~{admin/categories :: node(${top})}"></div>
+            </div>
+        </details>
+    </div>
+
+</main>
+
+<!-- main 밖에 두어야 본문으로 그려지지 않는다 -->
+    <!-- 노드 하나: 이름 변경 + 하위 목록 + 하위 추가 (재귀) -->
+<div th:fragment="node(n)" class="space-y-2">
+        <form th:action="@{/admin/categories/{id}/rename(id=${n.id})}" method="post" class="flex items-center gap-2">
+            <input name="name" th:value="${n.name}" class="input w-48 py-1.5">
+            <button class="text-xs text-gray-500 hover:underline">이름 변경</button>
+        </form>
+        <ul th:if="${!#lists.isEmpty(n.children)}" class="ml-4 space-y-2 border-l border-gray-200 pl-4">
+            <li th:each="c : ${n.children}">
+                <div th:replace="~{admin/categories :: node(${c})}"></div>
+            </li>
+        </ul>
+        <form th:if="${n.depth < 4}" th:action="@{/admin/categories}" method="post" class="ml-4 flex items-center gap-2">
+            <input type="hidden" name="parentId" th:value="${n.id}">
+            <input name="name" required class="input w-48 py-1.5" th:placeholder="${n.name} + ' 하위 추가'">
+            <button class="text-xs text-brand-700 hover:underline">+ 추가</button>
+        </form>
+    </div>
+</body>
+</html>

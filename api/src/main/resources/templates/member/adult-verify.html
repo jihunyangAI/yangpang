@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>성인 인증 - YangPang</title></head>
+<body>
+<main class="flex-1 py-10">
+    <div class="mx-auto w-full max-w-sm px-4 text-sm">
+        <div class="mb-5 text-center">
+            <span class="inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-rose-500 text-xl font-black text-rose-600">19</span>
+            <h1 class="mt-3 text-2xl font-black">성인 인증</h1>
+            <p class="mt-1 text-gray-500">만 19세 이상만 19세 이상 상품을 보고 살 수 있어요. 인증은 1년 동안 유효해요 (연구용 모의 인증).</p>
+        </div>
+
+        <div th:if="${verified}" class="rounded-3xl bg-emerald-50 p-5 text-center text-emerald-800">
+            <p class="font-bold">이미 성인 인증을 했어요</p>
+            <a th:href="${next != null ? next : '/'}" class="btn-primary mt-3 h-10 px-5">계속하기</a>
+        </div>
+
+        <div th:unless="${verified}" class="space-y-4 rounded-3xl bg-white p-5">
+            <form th:action="@{/adult-verify/code}" method="post" class="flex items-center justify-between gap-2">
+                <input type="hidden" name="continue" th:value="${next}">
+                <span>가입한 휴대폰 <b th:text="${phone}">010-****-0001</b></span>
+                <button class="btn-outline h-10 shrink-0 px-3" th:text="${code != null} ? '다시 받기' : '인증번호 받기'">인증번호 받기</button>
+            </form>
+            <p th:if="${code != null}" class="rounded-md bg-brand-50 p-3 text-brand-700">[모의 SMS] 인증번호 <b class="tracking-widest" th:text="${code}">123456</b> (3분 안에 입력, 실제 문자 없음)</p>
+            <form th:if="${code != null}" th:action="@{/adult-verify}" method="post" class="space-y-3">
+                <input type="hidden" name="continue" th:value="${next}">
+                <label class="block"><span class="mb-1 block font-semibold">생년월일</span>
+                    <input type="date" name="birth" required th:value="${birth}" class="input"></label>
+                <label class="block"><span class="mb-1 block font-semibold">인증번호</span>
+                    <input name="code" required inputmode="numeric" maxlength="6" class="input" placeholder="6자리"></label>
+                <button class="btn-primary h-11 w-full">성인 인증하기</button>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

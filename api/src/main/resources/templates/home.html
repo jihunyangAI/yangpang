@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>YangPang - 연구용 쇼핑몰 데모</title>
+</head>
+<body>
+<main class="flex-1 pt-4 md:pt-8">
+<!-- 섹션 순서·노출·제목은 관리자 > 홈 화면 구성(/admin/home)에서 편집. 디자인: 시안 C "따뜻한 에디토리얼" -->
+<th:block th:each="s : ${sections}" th:switch="${s.kind}">
+
+    <!-- 메인 배너: 왼쪽 캐러셀 + 오른쪽 바로가기 카드 두 장(PC) -->
+    <th:block th:case="'BANNER'"><section th:if="${!#lists.isEmpty(banners)}" class="container-page mb-10 md:mb-14">
+        <div class="grid gap-4 md:grid-cols-[7fr_5fr] md:gap-6">
+            <div class="relative overflow-hidden rounded-[26px] md:rounded-[28px]" data-carousel>
+                <div class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth" data-carousel-track>
+                    <a th:each="b : ${banners}" th:href="${b.linkUrl}"
+                       class="flex h-52 w-full shrink-0 snap-start flex-col justify-end bg-gradient-to-r p-6 text-white md:h-[360px] md:p-11" th:classappend="${b.theme.gradient()}">
+                        <p th:if="${b.caption != null}" class="text-xs font-medium tracking-[0.15em] opacity-90 md:text-sm" th:text="${b.caption}">문구</p>
+                        <p class="mt-2 font-serif text-[26px] font-bold leading-snug md:text-[42px]" th:text="${b.title}">제목</p>
+                        <p th:if="${b.subtitle != null}" class="mt-2 text-sm opacity-90 md:text-base" th:text="${b.subtitle}">설명</p>
+                    </a>
+                </div>
+                <div class="absolute bottom-4 right-5 flex gap-1.5" data-carousel-dots></div>
+            </div>
+            <div class="hidden grid-rows-2 gap-6 md:grid">
+                <a th:href="@{/deals}" class="flex flex-col justify-end rounded-[28px] bg-brand-100 p-8 hover:bg-brand-200/60">
+                    <span class="text-sm font-bold text-brand-700">매일 아침 7시, 20개 한정</span>
+                    <span class="mt-1 font-serif text-[26px] font-bold text-gray-900">오늘의 특가</span>
+                    <span class="mt-1 text-sm text-gray-600">수량이 다 팔리면 끝나요 ›</span>
+                </a>
+                <a th:href="@{/plus}" class="flex flex-col justify-end rounded-[28px] bg-sea-100 p-8 hover:bg-sea-200/60">
+                    <span class="text-sm font-bold text-sea-700">양팡플러스</span>
+                    <span class="mt-1 font-serif text-[26px] font-bold text-gray-900">무료배송 + 회원가</span>
+                    <span class="mt-1 text-sm text-gray-600">한 달 무료로 써 보기 ›</span>
+                </a>
+            </div>
+        </div>
+    </section></th:block>
+
+    <!-- 바로가기 -->
+    <th:block th:case="'SHORTCUTS'"><section class="container-page mb-10 md:mb-14" aria-label="바로가기">
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-8 md:gap-4 md:px-0">
+            <a th:each="sc : ${ {
+                    {'양팡배송', '/search?delivery=YANGPANG', 'M3 7h11v9H3z M14 10h4l3 3v3h-7 M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'},
+                    {'양팡프레시', '/fresh', 'M5 19c0-8 6-14 15-14 0 9-6 15-14 15 M5 19l7-7'},
+                    {'오늘의 특가', '/deals', 'M3 12V4h8l10 10-8 8L3 12z M7.5 7.5h.01'},
+                    {'양팡 랭킹', '/ranking', 'M5 20V10 M12 20V4 M19 20v-7'},
+                    {'리퍼마켓', '/refurb', 'M20 11a8 8 0 0 0-14.9-4 M4 4v4h4 M4 13a8 8 0 0 0 14.9 4 M20 20v-4h-4'},
+                    {'브랜드관', '/brands', 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z'},
+                    {'기획전', '/events', 'M4 10h16v10H4z M2 6h20v4H2z M12 6v14'},
+                    {'쿠폰존', '/coupons', 'M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4z M14 6v12'} } }"
+               th:href="${sc[1]}" class="flex w-[68px] shrink-0 flex-col items-center gap-2 md:w-auto">
+                <span class="flex h-[60px] w-[60px] items-center justify-center rounded-[20px] bg-white text-brand-600 ring-1 ring-gray-200 transition hover:ring-brand-300 md:h-16 md:w-16">
+                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path th:attr="d=${sc[2]}"/></svg>
+                </span>
+                <span class="whitespace-nowrap text-xs font-medium text-gray-800 md:text-sm" th:text="${sc[0]}">바로가기</span>
+            </a>
+        </div>
+    </section></th:block>
+
+    <!-- 오늘의 특가: 세로로 긴 카드 + 할인율 동그라미 -->
+    <th:block th:case="'DEALS'"><section th:if="${!#lists.isEmpty(deals)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-deals">
+        <div class="mb-4 flex items-end gap-3 md:mb-5">
+            <div>
+                <p class="text-xs font-bold text-brand-600 md:text-sm">매일 아침 7시, 수량 한정</p>
+                <h2 id="home-deals" class="section-title" th:text="${s.title}">오늘의 특가</h2>
+            </div>
+            <span class="mb-1 text-sm font-bold tabular-nums text-sea-600"><span data-countdown th:attr="data-countdown=${dealEndsInMillis}">--:--:--</span> 남음</span>
+            <a th:href="@{/deals}" class="mb-1 ml-auto text-sm text-gray-600 underline-offset-4 hover:underline">전체 보기</a>
+        </div>
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:gap-6 md:px-0">
+            <a th:each="d : ${deals}" th:href="@{/products/{id}(id=${d.productId}, item=${d.itemId})}" class="group w-40 shrink-0 md:w-[270px]">
+                <div class="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-gray-100 md:rounded-3xl">
+                    <img th:src="${d.imageUrl()}" th:alt="${d.name}" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+                    <span class="off-badge absolute right-3 top-3 md:h-14 md:w-14 md:text-base" th:text="${d.discountRate()} + '%'">10%</span>
+                    <span class="absolute bottom-3 left-3 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-sea-600" th:text="${d.remaining()} + '개 남음'"></span>
+                </div>
+                <p class="mt-2.5 line-clamp-2 text-sm leading-snug md:text-[15px]" th:text="${d.name}"></p>
+                <p class="mt-1 flex flex-wrap items-baseline gap-x-2">
+                    <b class="text-[17px] md:text-xl" th:text="${#numbers.formatInteger(d.dealPrice, 3, 'COMMA')} + '원'"></b>
+                    <del class="text-xs text-gray-500 md:text-sm" th:text="${#numbers.formatInteger(d.salePrice, 3, 'COMMA')} + '원'"></del>
+                </p>
+            </a>
+        </div>
+    </section></th:block>
+
+    <!-- 카테고리 바로가기 -->
+    <th:block th:case="'CATEGORIES'"><section class="container-page mb-12 md:mb-16" aria-labelledby="home-cats">
+        <h2 id="home-cats" class="section-title mb-4" th:text="${s.title}">카테고리</h2>
+        <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+            <a th:each="top : ${categoryRoots}" th:href="@{/category/{id}(id=${top.id})}" th:text="${top.name}"
+               class="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-gray-800 ring-1 ring-gray-200 hover:text-brand-700 hover:ring-brand-300">대분류</a>
+        </div>
+    </section></th:block>
+
+    <!-- 진행 중인 기획전 -->
+    <th:block th:case="'EXHIBITIONS'"><section th:if="${!#lists.isEmpty(exhibitions)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-events">
+        <div class="mb-4 flex items-end justify-between md:mb-5">
+            <h2 id="home-events" class="section-title" th:text="${s.title}">진행 중인 기획전</h2>
+            <a th:href="@{/events}" class="text-sm text-gray-600 underline-offset-4 hover:underline">전체 보기</a>
+        </div>
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-4 md:gap-6 md:px-0">
+            <a th:each="e : ${exhibitions}" th:href="@{/events/{slug}(slug=${e.slug})}"
+               class="flex h-40 w-64 shrink-0 flex-col justify-end rounded-3xl bg-gradient-to-r p-6 text-white transition hover:opacity-95 md:h-48 md:w-auto" th:classappend="${e.theme.gradient()}">
+                <b class="line-clamp-2 font-serif text-xl leading-snug" th:text="${e.title}">기획전</b>
+                <p class="mt-1.5 line-clamp-1 text-xs opacity-90" th:text="${e.subtitle}"></p>
+            </a>
+        </div>
+    </section></th:block>
+
+    <!-- 최근 본 상품 (로그인 회원) -->
+    <th:block th:case="'FOR_YOU'"><section th:if="${forYou != null and !#lists.isEmpty(forYou)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-foryou">
+        <div class="mb-4 md:mb-5">
+            <h2 id="home-foryou" class="section-title" th:text="${#strings.replace(s.title, '회원님', memberName + '님')}">회원님을 위한 추천</h2>
+            <p class="mt-1 text-sm text-gray-600">최근 둘러본 <span th:each="n, st : ${forYouInterests}"><b class="font-semibold text-sea-700" th:text="${n}">분류</b><span th:unless="${st.last}"> · </span></span> 관심을 바탕으로 골랐어요</p>
+        </div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 md:grid-cols-4 md:gap-x-5 lg:grid-cols-5">
+            <th:block th:each="card : ${forYou}">
+                <a th:replace="~{fragments/product-card :: card(${card})}"></a>
+            </th:block>
+        </div>
+    </section></th:block>
+
+    <th:block th:case="'RECENT'"><section th:if="${recentViews != null and !#lists.isEmpty(recentViews)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-recent">
+        <div class="mb-4 flex items-end justify-between md:mb-5">
+            <h2 id="home-recent" class="section-title" th:text="${s.title}">최근 본 상품</h2>
+            <a th:href="@{/my/recent}" class="text-sm text-gray-600 underline-offset-4 hover:underline">전체 보기</a>
+        </div>
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:gap-5 md:px-0">
+            <th:block th:each="card : ${recentViews}">
+                <div class="w-36 shrink-0 md:w-44"><a th:replace="~{fragments/product-card :: card(${card})}"></a></div>
+            </th:block>
+        </div>
+    </section></th:block>
+
+    <!-- 양팡 랭킹: 매거진식 번호 목록 -->
+    <th:block th:case="'RANKING'"><section th:if="${!#lists.isEmpty(ranking)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-ranking">
+        <div class="card grid gap-4 p-5 md:grid-cols-[280px_1fr] md:gap-10 md:p-10">
+            <div class="flex items-end justify-between md:flex-col md:items-start md:justify-start md:gap-3">
+                <div>
+                    <p class="text-xs font-bold text-sea-600 md:text-sm">10분마다 새로 매기는</p>
+                    <h2 id="home-ranking" class="section-title md:text-3xl md:leading-snug" th:text="${s.title}">양팡 랭킹</h2>
+                    <p class="mt-3 hidden text-sm leading-relaxed text-gray-600 md:block">판매량·리뷰·배송 속도를 함께 따져 정한 순위예요.</p>
+                </div>
+                <a th:href="@{/ranking}" class="text-sm text-gray-600 underline-offset-4 hover:underline md:btn-secondary md:mt-3 md:no-underline">TOP 100 보기</a>
+            </div>
+            <ol class="grid md:grid-cols-2 md:gap-x-8">
+                <li th:each="card, st : ${ranking}" class="border-b border-gray-100 last:border-0 md:[&:nth-last-child(2)]:border-0"
+                    th:classappend="${st.count > 5} ? 'hidden md:block'">
+                    <a th:href="@{/products/{id}(id=${card.productId})}" class="group flex items-center gap-4 py-3">
+                        <span class="w-7 shrink-0 font-serif text-2xl font-bold" th:classappend="${st.count <= 3} ? 'text-brand-600' : 'text-sea-600'" th:text="${st.count}">1</span>
+                        <img th:src="${card.imageUrl}" th:alt="${card.name}" loading="lazy" class="h-16 w-16 shrink-0 rounded-2xl bg-gray-100 object-cover md:h-[72px] md:w-[72px]">
+                        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span class="truncate text-sm group-hover:underline" th:text="${card.name}">상품명</span>
+                            <span class="flex items-baseline gap-1.5">
+                                <b th:if="${card.hasDiscount()}" class="text-sm text-brand-600" th:text="${card.discountRate} + '%'">10%</b>
+                                <b class="text-base" th:text="${#numbers.formatInteger(card.salePrice, 3, 'COMMA')} + '원'">0원</b>
+                            </span>
+                            <span th:if="${card.reviewCount > 0}" class="text-xs text-gray-500"
+                                  th:text="'★ ' + ${card.rating} + ' · 리뷰 ' + ${#numbers.formatInteger(card.reviewCount, 1, 'COMMA')}">★</span>
+                        </span>
+                    </a>
+                </li>
+            </ol>
+        </div>
+    </section></th:block>
+
+    <!-- 양팡프레시 -->
+    <th:block th:case="'FRESH'"><section th:if="${!#lists.isEmpty(fresh)}" class="container-page mb-12 md:mb-16" aria-labelledby="home-fresh">
+        <div class="mb-4 flex items-end justify-between md:mb-5">
+            <div>
+                <p class="text-xs font-bold text-fresh md:text-sm">밤에 주문하면 새벽에</p>
+                <h2 id="home-fresh" class="section-title" th:text="${s.title}">양팡프레시</h2>
+            </div>
+            <a th:href="@{/fresh}" class="text-sm text-gray-600 underline-offset-4 hover:underline">전체 보기</a>
+        </div>
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:gap-5 md:px-0">
+            <th:block th:each="card : ${fresh}">
+                <div class="w-36 shrink-0 md:w-[208px]"><a th:replace="~{fragments/product-card :: card(${card})}"></a></div>
+            </th:block>
+        </div>
+    </section></th:block>
+
+    <!-- 많이 팔린 상품 -->
+    <th:block th:case="'BEST'"><section class="container-page mb-12 md:mb-16" aria-labelledby="home-best">
+        <div class="mb-4 flex items-end justify-between md:mb-5">
+            <h2 id="home-best" class="section-title" th:text="${s.title}">지금 많이 팔린 상품</h2>
+            <a th:href="@{/search(sort='sales')}" class="text-sm text-gray-600 underline-offset-4 hover:underline">더 보기</a>
+        </div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 md:grid-cols-4 md:gap-x-5 lg:grid-cols-5">
+            <th:block th:each="card : ${bestSellers}">
+                <a th:replace="~{fragments/product-card :: card(${card})}"></a>
+            </th:block>
+        </div>
+        <p th:if="${#lists.isEmpty(bestSellers)}" class="card p-8 text-center text-sm text-gray-500">
+            상품 데이터가 없습니다. <code class="rounded bg-gray-100 px-1">./gradlew :seed:bootRun</code> 으로 가짜 데이터를 만들어 주세요.
+        </p>
+    </section></th:block>
+</th:block>
+</main>
+</body>
+</html>

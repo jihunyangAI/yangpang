@@ -1,0 +1,13 @@
+{
+  "name": "yangpang-web-assets",
+  "private": true,
+  "description": "Tailwind CSS 빌드 전용 (Gradle buildCss 태스크가 실행)",
+  "scripts": {
+    "build:css": "tailwindcss -i src/main/tailwind/app.css -o src/main/resources/static/css/app.css --minify",
+    "watch:css": "tailwindcss -i src/main/tailwind/app.css -o src/main/resources/static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.5",
+    "tailwindcss": "4.3.5"
+  }
+}

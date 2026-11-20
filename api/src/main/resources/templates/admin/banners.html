@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'banners')}">
+<head><title>전시(배너) - YangPang 관리자</title></head>
+<body>
+<main class="max-w-5xl space-y-6">
+    <h1 class="text-xl font-bold">전시 관리 · 메인 배너</h1>
+
+    <div class="space-y-3">
+        <div th:each="b : ${banners}" class="flex flex-wrap items-center gap-4 rounded-lg bg-white p-3">
+            <div class="flex h-20 w-56 shrink-0 flex-col justify-center rounded bg-gradient-to-r px-4 text-white"
+                 th:classappend="${b.theme.gradient()} + (${b.isShowing(now)} ? '' : ' opacity-40')">
+                <p class="text-[10px] opacity-90" th:text="${b.caption}"></p>
+                <p class="truncate text-sm font-black" th:text="${b.title}"></p>
+            </div>
+            <div class="min-w-0 flex-1 text-xs text-gray-600">
+                <p><b class="text-sm text-gray-900" th:text="${b.title}"></b></p>
+                <p th:text="'링크 ' + ${b.linkUrl} + ' · 순서 ' + ${b.sortOrder} + ' · ' + ${b.theme.label()}"></p>
+                <p th:text="(${b.startsAt != null} ? ${@fmt.date(b.startsAt)} : '시작 제한 없음') + ' ~ ' + (${b.endsAt != null} ? ${@fmt.date(b.endsAt)} : '종료 제한 없음')"></p>
+                <p class="font-semibold" th:classappend="${b.isShowing(now)} ? 'text-arrival' : 'text-gray-400'"
+                   th:text="${b.isShowing(now)} ? '노출 중' : (${b.active} ? '기간 외' : '꺼짐')"></p>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <form th:action="@{/admin/banners/{id}/move(id=${b.id})}" method="post" class="flex items-center gap-1">
+                    <input name="sortOrder" type="number" th:value="${b.sortOrder}" class="w-16 rounded border border-gray-300 px-2 py-1">
+                    <button class="text-gray-600 hover:underline">순서</button></form>
+                <form th:action="@{/admin/banners/{id}/toggle(id=${b.id})}" method="post">
+                    <button class="btn-outline py-1" th:text="${b.active} ? '끄기' : '켜기'">끄기</button></form>
+                <form th:action="@{/admin/banners/{id}/delete(id=${b.id})}" method="post">
+                    <button class="text-gray-400 hover:text-sale">삭제</button></form>
+            </div>
+        </div>
+        <p th:if="${#lists.isEmpty(banners)}" class="rounded-lg bg-white p-6 text-center text-gray-500">배너가 없어요 (홈 배너 영역이 숨겨져요)</p>
+    </div>
+
+    <form th:action="@{/admin/banners}" method="post" class="grid gap-3 rounded-lg bg-white p-5 md:grid-cols-3">
+        <p class="font-bold md:col-span-3">배너 추가</p>
+        <label><span class="mb-1 block font-semibold">작은 문구</span><input name="caption" maxlength="40" class="input" placeholder="예: 연말 기획전"></label>
+        <label><span class="mb-1 block font-semibold">제목</span><input name="title" maxlength="60" required class="input"></label>
+        <label><span class="mb-1 block font-semibold">설명</span><input name="subtitle" maxlength="100" class="input"></label>
+        <label><span class="mb-1 block font-semibold">링크 (사이트 안 경로)</span><input name="linkUrl" required class="input" value="/coupons"></label>
+        <label><span class="mb-1 block font-semibold">색상</span>
+            <select name="theme" class="input"><option th:each="t : ${themes}" th:value="${t}" th:text="${t.label()}">색</option></select></label>
+        <label><span class="mb-1 block font-semibold">순서</span><input name="sortOrder" type="number" value="10" class="input"></label>
+        <label><span class="mb-1 block font-semibold">시작일 (선택)</span><input name="startsOn" type="date" class="input"></label>
+        <label><span class="mb-1 block font-semibold">종료일 (선택)</span><input name="endsOn" type="date" class="input"></label>
+        <div class="flex items-end"><button class="btn-primary w-full">추가</button></div>
+    </form>
+</main>
+</body>
+</html>

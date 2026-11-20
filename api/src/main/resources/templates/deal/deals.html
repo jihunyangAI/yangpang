@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>오늘의 특가 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <section class="bg-gradient-to-r from-sale to-orange-500 py-8 text-white">
+        <div class="container-page flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <h1 class="text-3xl font-black">⏰ 오늘의 특가</h1>
+                <p class="mt-1 text-sm opacity-90">매일 오전 7시에 바뀌는 한정 수량 특가 · 1회 주문 수량 제한</p>
+            </div>
+            <p class="rounded-full bg-white/20 px-4 py-2 text-sm font-bold">
+                다음 교체까지 <span data-countdown th:attr="data-countdown=${endsInMillis}">--:--:--</span></p>
+        </div>
+    </section>
+
+    <section class="container-page py-6">
+        <p th:if="${#lists.isEmpty(deals)}" class="py-20 text-center text-gray-400">오늘의 특가를 준비 중이에요. 오전 7시에 다시 와 주세요</p>
+        <ul class="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-4">
+            <li th:each="d : ${deals}" class="relative" th:classappend="${d.soldOut()} ? 'opacity-60'">
+                <a th:href="@{/products/{id}(id=${d.productId}, item=${d.itemId})}" class="block">
+                    <div class="relative overflow-hidden rounded-lg bg-gray-50">
+                        <img th:src="${d.imageUrl()}" th:alt="${d.name}" class="aspect-square w-full object-cover" loading="lazy">
+                        <span th:if="${d.soldOut()}" class="absolute inset-0 flex items-center justify-center bg-black/40 text-lg font-black text-white">모두 팔렸어요</span>
+                        <span th:unless="${d.soldOut()}" class="absolute left-2 top-2 rounded bg-sale px-2 py-0.5 text-xs font-bold text-white"
+                              th:text="${d.remaining()} + '개 남음'">남음</span>
+                    </div>
+                    <p class="mt-2 line-clamp-2 text-sm" th:text="${d.name}">상품</p>
+                    <p th:if="${d.optionText != null}" class="text-xs text-gray-400" th:text="${d.optionText}"></p>
+                    <div class="mt-1 flex items-baseline gap-1.5">
+                        <span class="text-sm font-bold text-sale" th:text="${d.discountRate()} + '%'">20%</span>
+                        <del class="text-xs text-gray-400" th:text="${#numbers.formatInteger(d.salePrice, 3, 'COMMA')} + '원'"></del>
+                    </div>
+                    <p class="text-base font-extrabold text-sale" th:text="${#numbers.formatInteger(d.dealPrice, 3, 'COMMA')} + '원'">0원</p>
+                </a>
+                <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-100"><div class="h-full bg-sale" th:style="'width:' + ${d.soldPercent()} + '%'"></div></div>
+                <p class="mt-1 text-xs text-gray-500" th:text="${d.soldPercent()} + '% 판매 · ' + ${d.deliveryLabel}"></p>
+                <form th:unless="${d.soldOut()}" hx-post="/cart/items" hx-target="#toast" class="mt-2">
+                    <input type="hidden" name="vendorItemId" th:value="${d.vendorItemId}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button class="btn-outline h-9 w-full border-sale text-sale">장바구니 담기</button>
+                </form>
+            </li>
+        </ul>
+        <p class="mt-8 text-xs text-gray-400">· 특가 수량이 모두 팔리면 일반 판매가로 돌아갑니다. 장바구니에 담아 두어도 주문할 때 수량이 남아 있어야 특가가 적용돼요.
+            · 양팡플러스 회원가가 특가보다 낮으면 회원가가 적용되고, 둘을 겹쳐 할인하지 않아요.</p>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>19세 이상 상품 - YangPang</title></head>
+<body>
+<main class="flex-1 py-16">
+    <div class="mx-auto w-full max-w-md px-4 text-center text-sm">
+        <span class="inline-flex h-20 w-20 items-center justify-center rounded-full border-[6px] border-rose-500 text-3xl font-black text-rose-600">19</span>
+        <h1 class="mt-4 text-xl font-black">19세 이상만 볼 수 있는 상품이에요</h1>
+        <p class="mt-2 text-gray-500">청소년 보호를 위해 성인 인증을 한 회원만 상품 정보를 보고 살 수 있어요 (연구용 모의 인증).</p>
+        <a th:if="${loggedIn}" th:href="@{/adult-verify(continue=${'/products/' + productId})}" class="btn-primary mt-6 h-11 px-6">성인 인증하기</a>
+        <a th:unless="${loggedIn}" th:href="@{/login(continue=${'/adult-verify?continue=/products/' + productId})}" class="btn-primary mt-6 h-11 px-6">로그인하고 성인 인증하기</a>
+        <p class="mt-4"><a th:href="@{/}" class="text-gray-500 underline">홈으로</a></p>
+    </div>
+</main>
+</body>
+</html>

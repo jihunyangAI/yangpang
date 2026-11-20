@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>1:1 문의 내역 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="mx-auto w-full max-w-2xl px-4 py-6 text-sm md:py-8">
+        <a th:href="@{/cs}" class="text-xs text-gray-500 hover:underline">‹ 고객센터</a>
+        <div class="mb-4 mt-1 flex items-center justify-between">
+            <h1 class="text-xl font-bold">1:1 문의 내역</h1>
+            <a th:href="@{/cs/inquiries/new}" class="btn-primary h-9 px-4">문의하기</a>
+        </div>
+        <p th:if="${#lists.isEmpty(inquiries)}" class="rounded-2xl bg-white py-12 text-center text-gray-500">문의한 내역이 없어요</p>
+        <ul class="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white">
+            <li th:each="i : ${inquiries}">
+                <a th:href="@{/cs/inquiries/{id}(id=${i.id})}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                    <span class="badge shrink-0" th:classappend="${i.answered()} ? 'bg-emerald-50 text-emerald-700' : 'bg-yellow-100 text-yellow-800'"
+                          th:text="${i.answered()} ? '답변 완료' : '답변 대기'">상태</span>
+                    <span class="min-w-0 flex-1 truncate" th:text="${i.title}">제목</span>
+                    <span class="shrink-0 text-xs text-gray-400" th:text="${i.category.label()} + ' · ' + ${@fmt.date(i.createdAt)}">날짜</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</main>
+</body>
+</html>

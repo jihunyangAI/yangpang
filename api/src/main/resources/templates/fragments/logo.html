@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- YangPang 로고. 사용: <span th:replace="~{fragments/logo :: logo('')}"></span>, 어두운 바탕은 logo('yp-logo--dark') -->
+<span th:fragment="logo(variant)" class="yp-logo" th:classappend="${variant}" aria-hidden="true"><span class="yp-yang"><i>Y</i><i>a</i><i>n</i><i>g</i></span><span class="yp-pang"><i>P</i><i>a</i><i>n</i><i>g</i></span></span>
+</body>
+</html>

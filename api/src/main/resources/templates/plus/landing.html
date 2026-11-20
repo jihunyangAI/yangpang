@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>양팡플러스 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <section class="bg-gradient-to-r from-plus to-indigo-500 py-12 text-white md:py-16">
+        <div class="container-page">
+            <p class="text-sm font-semibold opacity-90">양팡플러스 (연구용 데모 · 실제 청구 없음)</p>
+            <h1 class="mt-2 text-3xl font-black md:text-5xl">금액 상관없이 무료배송</h1>
+            <p class="mt-3 opacity-90">월 <b th:text="${#numbers.formatInteger(fee, 1, 'COMMA')}">7,890</b>원 · 첫 달 무료 · 언제든 2단계로 해지</p>
+            <div class="mt-6">
+                <a sec:authorize="isAnonymous()" th:href="@{/login(continue='/plus')}" class="btn h-12 bg-white px-6 text-base text-plus">로그인하고 가입하기</a>
+                <th:block sec:authorize="isAuthenticated()">
+                    <a th:if="${membership != null and membership.benefitActive}" th:href="@{/my/plus}" class="btn h-12 bg-white px-6 text-base text-plus">
+                        이용 중이에요 · 멤버십 관리 ›</a>
+                    <form th:unless="${membership != null and membership.benefitActive}" th:action="@{/plus/join}" method="post">
+                        <button class="btn h-12 bg-white px-6 text-base text-plus"
+                                th:text="${membership == null} ? '첫 달 무료로 시작하기' : '다시 가입하기 (월 ' + ${#numbers.formatInteger(fee, 1, 'COMMA')} + '원)'">가입</button>
+                    </form>
+                </th:block>
+            </div>
+        </div>
+    </section>
+
+    <section class="container-page grid gap-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div th:each="b : ${ { {'🚚','양팡배송 무료','최소 주문금액 없이 무료배송'}, {'↩️',policy['PLUS_RETURN_WINDOW_DAYS'] + '일 무료 반품','양팡배송 상품은 ' + policy['PLUS_RETURN_WINDOW_DAYS'] + '일 안에 반품비 없이'},
+                              {'🏷️','회원 전용가','회원가가 붙은 상품을 더 싸게'}, {'🥬','새벽배송','밤 12시까지 주문하면 새벽 도착'} } }"
+             class="rounded-lg border border-gray-200 p-5">
+            <p class="text-3xl" th:text="${b[0]}">🚚</p>
+            <p class="mt-2 font-bold" th:text="${b[1]}">혜택</p>
+            <p class="mt-1 text-sm text-gray-500" th:text="${b[2]}">설명</p>
+        </div>
+    </section>
+    <p class="container-page pb-10 text-xs text-gray-500">
+        · 상품에 표시되는 "양팡플러스 회원가"는 월 회비를 내는 회원에게만 적용되는 가격입니다.
+        · 첫 가입은 30일 무료이고, 이후 30일마다 월 회비가 청구됩니다(이 데모에서는 모의 기록만 남습니다). 해지해도 다음 결제일까지 혜택이 유지됩니다.
+    </p>
+</main>
+</body>
+</html>

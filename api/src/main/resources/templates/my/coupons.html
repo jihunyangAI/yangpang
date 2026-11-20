@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>쿠폰함 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('coupons')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <div class="mb-4 flex items-center justify-between">
+                <h1 class="text-xl font-bold">쿠폰함 <span class="text-base font-normal text-gray-500" th:text="${#lists.size(available)} + '장'"></span></h1>
+                <a th:href="@{/coupons}" class="text-brand-700 hover:underline">쿠폰존 가기 ›</a>
+            </div>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                <li th:each="m : ${available}" class="rounded-lg border border-gray-200 p-4">
+                    <p class="text-lg font-black text-brand-700" th:text="${m.coupon.benefitText()}">10%</p>
+                    <p class="font-bold" th:text="${m.coupon.name}">쿠폰</p>
+                    <p class="text-xs text-gray-500" th:text="(${m.coupon.kind.name() == 'CART'} ? '장바구니 쿠폰' : '상품 쿠폰')
+                        + (${m.coupon.minOrderAmount > 0} ? ' · ' + ${#numbers.formatInteger(m.coupon.minOrderAmount, 1, 'COMMA')} + '원 이상' : '')
+                        + ' · ' + ${@fmt.date(m.expiresAt)} + '까지'"></p>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(available)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">쓸 수 있는 쿠폰이 없어요</p>
+
+            <details th:if="${!#lists.isEmpty(ended)}" class="mt-6">
+                <summary class="cursor-pointer text-gray-500" th:text="'사용·만료된 쿠폰 ' + ${#lists.size(ended)} + '장'">사용</summary>
+                <ul class="mt-2 space-y-1 text-xs text-gray-500">
+                    <li th:each="m : ${ended}" th:text="${m.coupon.name} + ' · ' + (${m.status.name() == 'USED'} ? ${@fmt.date(m.usedAt)} + ' 사용' : '기간 만료')"></li>
+                </ul>
+            </details>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  상품 카드 공통 컴포넌트 (기획서 D-04).
+  사용: 반복할 때는 th:each와 th:replace를 같은 태그에 쓰지 않는다 (th:replace가 먼저 실행됨)
+    <th:block th:each="card : ${cards}"><a th:replace="~{fragments/product-card :: card(${card})}"></a></th:block>
+-->
+<th:block th:fragment="card(card)"><a th:replace="~{fragments/product-card :: link(${card}, @{/products/{id}(id=${card.productId})}, false)}"></a></th:block>
+
+<!-- 링크 주소와 광고 표시를 지정하는 버전 (검색 광고: href = 광고 클릭 주소, ad = true) -->
+<a th:fragment="link(card, href, ad)" th:href="${href}" th:attr="rel=${ad} ? 'sponsored' : null"
+   class="group flex flex-col gap-1.5" th:classappend="${card.soldOut} ? 'opacity-60'">
+
+    <div class="relative mb-1 aspect-square overflow-hidden rounded-[22px] bg-gray-100">
+        <img th:src="${card.imageUrl}" th:alt="${card.name}" loading="lazy"
+             class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">
+        <span th:if="${card.hasDiscount() and !card.soldOut}" class="off-badge absolute right-2.5 top-2.5"
+              th:text="${card.discountRate} + '%'">10%</span>
+        <!-- 19세 이상 상품: 성인 인증 전에는 이미지를 가린다 -->
+        <span th:if="${card.adult and !adultVerified}" class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-gray-800 text-white">
+            <span class="flex h-12 w-12 items-center justify-center rounded-full border-4 border-rose-500 text-lg font-black">19</span>
+            <span class="text-[11px] opacity-80">성인 인증 후 볼 수 있어요</span></span>
+        <span th:if="${card.soldOut}"
+              class="absolute inset-0 flex items-center justify-center bg-gray-900/45 text-sm font-bold text-white">일시품절</span>
+        <span th:if="${ad}" class="absolute left-2.5 top-2.5 rounded-md bg-white/90 px-1.5 py-0.5 text-[11px] font-bold text-gray-600 ring-1 ring-gray-200">AD</span>
+    </div>
+
+    <p class="line-clamp-2 text-sm leading-snug text-gray-800 group-hover:underline" th:text="${card.name}">상품명</p>
+
+    <p class="flex flex-wrap items-baseline gap-x-1.5">
+        <span class="text-[17px] font-bold"><span th:text="${#numbers.formatInteger(card.salePrice, 3, 'COMMA')}">0</span>원</span>
+        <del th:if="${card.hasDiscount()}" class="text-xs text-gray-500" th:text="${#numbers.formatInteger(card.listPrice, 3, 'COMMA')} + '원'">정가</del>
+    </p>
+
+    <p th:if="${card.plusPrice != null and card.plusPrice < card.salePrice}" class="-mt-0.5 text-xs font-bold text-plus"
+       th:text="'플러스 회원가 ' + ${#numbers.formatInteger(card.plusPrice, 3, 'COMMA')} + '원'">회원가</p>
+    <p class="text-xs font-bold"
+       th:classappend="${card.deliveryType == 'FRESH'} ? 'text-fresh' : (${card.deliveryType == 'SELLER'} ? 'text-gray-500' : 'text-arrival')">
+        <span th:text="${card.deliveryLabel}">양팡배송</span> · <span th:text="${card.arrivalText}">내일 도착</span>
+    </p>
+
+    <div class="flex items-center gap-1 text-xs text-gray-500" th:if="${card.reviewCount > 0}">
+        <span class="stars" th:aria-label="'별점 ' + ${card.rating}"><span th:style="'width:' + ${card.ratingPercent()} + '%'"></span></span>
+        <span th:text="'(' + ${#numbers.formatInteger(card.reviewCount, 1, 'COMMA')} + ')'">(0)</span>
+    </div>
+</a>
+</body>
+</html>

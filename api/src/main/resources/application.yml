@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: yangpang
+  datasource:
+    url: jdbc:postgresql://localhost:5432/yangpang
+    username: yangpang
+    password: yangpang
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate        # 스키마는 Flyway가 관리, JPA는 검증만
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+  flyway:
+    enabled: true
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 5MB        # 이미지 검색 사진 (M4 ⑦)
+      max-request-size: 6MB
+  docker:
+    compose:
+      file: ../docker-compose.yml
+      lifecycle-management: start-only
+      skip:
+        in-tests: true
+
+server:
+  port: 8090   # 8080은 다른 로컬 프로젝트가 사용 중
+  servlet:
+    session:
+      timeout: 2h
+
+yangpang:
+  search:
+    meili:
+      enabled: true
+      url: http://localhost:7700
+      key: yangpang-dev-master-key   # 개발용 (docker-compose.yml과 같음)
+  demo:
+    show-test-login: true       # 로그인 화면의 테스트 계정 빠른 로그인 (기획서 M-08)
+    test-password: "yangpang1234!"
+
+logging:
+  level:
+    com.yangpang: debug

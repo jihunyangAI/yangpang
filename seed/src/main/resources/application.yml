@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: yangpang-seed
+  main:
+    web-application-type: none
+    banner-mode: off
+  datasource:
+    url: jdbc:postgresql://localhost:5432/yangpang
+    username: yangpang
+    password: yangpang
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true            # 생성 전에 스키마를 최신으로 맞춘다
+  docker:
+    compose:
+      file: ../docker-compose.yml
+      lifecycle-management: start-only   # DB가 없으면 띄우고, 끝나도 내리지 않는다
+      skip:
+        in-tests: true
+
+seed:
+  scale: MVP
+  random-seed: 20261119
+  reset: true
+  default-password: "yangpang1234!"   # 개발용. 모든 가짜·테스트 계정 공통
+
+logging:
+  level:
+    root: warn
+    com.yangpang: info

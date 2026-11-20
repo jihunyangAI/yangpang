@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>배송지 관리 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('addresses')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <div class="mb-4 flex items-center justify-between">
+                <h1 class="text-xl font-bold">배송지 관리</h1>
+                <a th:href="@{/my/addresses/new}" class="btn-primary">+ 배송지 추가</a>
+            </div>
+            <ul class="space-y-3">
+                <li th:each="a : ${addresses}" class="rounded-lg border p-4"
+                    th:classappend="${a.defaultAddress} ? 'border-brand-600' : 'border-gray-200'">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p>
+                                <b th:text="${a.recipient}">받는 분</b>
+                                <span th:if="${a.label != null}" class="ml-1 rounded bg-gray-100 px-1.5 text-xs text-gray-600" th:text="${a.label}"></span>
+                                <span th:if="${a.defaultAddress}" class="ml-1 rounded bg-brand-100 px-1.5 text-xs font-semibold text-brand-700">기본 배송지</span>
+                                <span class="ml-1 text-xs text-gray-400" th:text="${a.region.label()}">수도권</span>
+                            </p>
+                            <p class="mt-1 text-gray-600" th:text="'(' + ${a.zipcode} + ') ' + ${a.address1} + ' ' + ${a.address2 ?: ''}">주소</p>
+                            <p class="text-xs text-gray-500" th:text="${a.phone} + ' · ' + ${a.entranceType.label()} + (${a.requestNote != null} ? ' · ' + ${a.requestNote} : '')">연락처</p>
+                        </div>
+                        <div class="flex shrink-0 flex-col items-end gap-1 text-xs">
+                            <a th:href="@{/my/addresses/{id}/edit(id=${a.id})}" class="text-brand-700 hover:underline">수정</a>
+                            <form th:unless="${a.defaultAddress}" th:action="@{/my/addresses/{id}/default(id=${a.id})}" method="post">
+                                <button class="text-gray-500 hover:underline">기본으로</button></form>
+                            <form th:action="@{/my/addresses/{id}/delete(id=${a.id})}" method="post">
+                                <button class="text-gray-400 hover:text-sale">삭제</button></form>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(addresses)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">등록된 배송지가 없어요</p>
+        </section>
+    </div>
+</main>
+</body>
+</html>

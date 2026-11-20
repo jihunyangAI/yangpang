@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'inquiries')}">
+<head><title>상품문의 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-4xl">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-xl font-bold">상품문의 <span class="text-base font-normal text-gray-500" th:text="${inquiries.totalElements} + '건'"></span></h1>
+        <div class="flex gap-2">
+            <a th:href="@{/admin/inquiries}" class="rounded px-3 py-1.5" th:classappend="${!all} ? 'bg-gray-900 text-white' : 'bg-white'">답변 대기</a>
+            <a th:href="@{/admin/inquiries(all=true)}" class="rounded px-3 py-1.5" th:classappend="${all} ? 'bg-gray-900 text-white' : 'bg-white'">전체</a>
+        </div>
+    </div>
+    <ul class="space-y-3">
+        <li th:each="q : ${inquiries.content}" class="rounded-lg bg-white p-4">
+            <p class="text-xs text-gray-500">
+                <a th:href="@{/products/{id}(id=${q.productId})} + '#qna'" target="_blank" class="text-brand-700 hover:underline" th:text="'상품 #' + ${q.productId}"></a>
+                · <span th:text="${q.type.label()}"></span> · 회원 #<span th:text="${q.memberId}"></span>
+                · <span th:text="${@fmt.dateTime(q.createdAt)}"></span> <span th:if="${q.secret}">· 🔒 비밀글</span></p>
+            <p class="mt-1 whitespace-pre-line" th:text="${q.content}">질문</p>
+            <p th:if="${q.answered}" class="mt-2 rounded bg-gray-50 p-2 text-gray-600" th:text="'A. ' + ${q.answer}"></p>
+            <form th:unless="${q.answered}" th:action="@{/admin/inquiries/{id}/answer(id=${q.id})}" method="post" class="mt-2 flex gap-2">
+                <input name="answer" required class="input" placeholder="답변 입력">
+                <button class="btn-primary shrink-0">답변</button>
+            </form>
+        </li>
+    </ul>
+    <p th:if="${inquiries.isEmpty()}" class="rounded-lg bg-white p-10 text-center text-gray-500">답변을 기다리는 문의가 없어요</p>
+</main>
+</body>
+</html>

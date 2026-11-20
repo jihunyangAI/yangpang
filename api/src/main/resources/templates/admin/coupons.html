@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'coupons')}">
+<head><title>쿠폰 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-6">
+    <h1 class="text-xl font-bold">쿠폰</h1>
+
+    <form th:action="@{/admin/coupons}" method="post" class="grid gap-3 rounded-lg bg-white p-5 md:grid-cols-4">
+        <label class="md:col-span-2"><span class="mb-1 block font-semibold">이름</span><input name="name" required class="input" placeholder="예: 주방용품 10% 할인"></label>
+        <label><span class="mb-1 block font-semibold">종류</span>
+            <select name="kind" class="input"><option value="PRODUCT">상품 쿠폰</option><option value="CART">장바구니 쿠폰</option></select></label>
+        <label><span class="mb-1 block font-semibold">대상 카테고리</span>
+            <select name="targetCategoryId" class="input"><option value="">전체 상품</option>
+                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">대분류</option></select></label>
+        <label><span class="mb-1 block font-semibold">할인 방식</span>
+            <select name="discountType" class="input"><option value="AMOUNT">정액(원)</option><option value="RATE">정률(%)</option></select></label>
+        <label><span class="mb-1 block font-semibold">할인 값</span><input name="discountValue" type="number" min="1" required class="input"></label>
+        <label><span class="mb-1 block font-semibold">최대 할인 (정률)</span><input name="maxDiscount" type="number" min="0" class="input"></label>
+        <label><span class="mb-1 block font-semibold">최소 주문금액</span><input name="minOrderAmount" type="number" min="0" value="0" class="input"></label>
+        <label><span class="mb-1 block font-semibold">사용 기간(일)</span><input name="validDays" type="number" min="1" max="365" value="30" class="input"></label>
+        <label><span class="mb-1 block font-semibold">발급 수량 (비우면 무제한)</span><input name="totalQuantity" type="number" min="1" class="input"></label>
+        <label class="flex items-end gap-2 pb-2"><input type="checkbox" name="signup" value="true" class="h-4 w-4 accent-brand-600"> 가입 시 자동 지급 (쿠폰존 비노출)</label>
+        <div class="flex items-end"><button class="btn-primary w-full">쿠폰 만들기</button></div>
+    </form>
+
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[820px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="px-4 py-2">번호</th><th class="px-4 py-2">이름</th><th class="px-4 py-2">종류</th><th class="px-4 py-2">혜택</th>
+                <th class="px-4 py-2">조건</th><th class="px-4 py-2 text-right">발급</th><th class="px-4 py-2">상태</th><th></th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="c : ${coupons}">
+                <td class="px-4 py-2 text-gray-500" th:text="${c.id}"></td>
+                <td class="px-4 py-2 font-medium" th:text="${c.name}"></td>
+                <td class="px-4 py-2" th:text="${c.kind.name() == 'CART'} ? '장바구니' : '상품'"></td>
+                <td class="px-4 py-2" th:text="${c.benefitText()}"></td>
+                <td class="px-4 py-2 text-xs text-gray-500" th:text="(${c.minOrderAmount > 0} ? ${#numbers.formatInteger(c.minOrderAmount, 1, 'COMMA')} + '원 이상 · ' : '') + ${c.validDays} + '일' + (${c.targetCategoryId != null} ? ' · 카테고리 #' + ${c.targetCategoryId} : '') + (${c.autoIssue != null} ? ' · 가입 자동' : '')"></td>
+                <td class="px-4 py-2 text-right" th:text="${c.issuedCount} + (${c.totalQuantity != null} ? ' / ' + ${c.totalQuantity} : '')"></td>
+                <td class="px-4 py-2"><span class="badge" th:classappend="${c.active} ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-500'" th:text="${c.active} ? '배포중' : '중지'"></span></td>
+                <td class="px-4 py-2 text-right"><form th:if="${c.active}" th:action="@{/admin/coupons/{id}/deactivate(id=${c.id})}" method="post">
+                    <button class="text-xs text-gray-500 hover:underline">배포 중지</button></form></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

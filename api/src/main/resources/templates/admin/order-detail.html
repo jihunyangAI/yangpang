@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'orders')}">
+<head><title>주문 상세 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-4xl space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-xl font-bold">주문 <span class="font-mono" th:text="${o.orderNo}">번호</span>
+            <span class="badge ml-2 align-middle bg-brand-50 text-brand-700" th:text="${o.status.label()}">상태</span></h1>
+        <form th:if="${o.status.name() == 'PENDING_PAYMENT' and payment != null and payment.status.name() == 'PENDING'}"
+              th:action="@{/admin/orders/{no}/confirm-deposit(no=${o.orderNo})}" method="post">
+            <button class="btn-primary">입금 확인 (모의)</button>
+        </form>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-lg bg-white p-5">
+            <p class="mb-2 font-bold">주문 정보</p>
+            <p>회원 #<span th:text="${o.memberId}"></span> · <span th:text="${@fmt.dateTime(o.orderedAt)}"></span></p>
+            <p th:text="${o.recipient} + ' · ' + ${o.recipientPhone}"></p>
+            <p class="text-gray-600" th:text="'(' + ${o.zipcode} + ') ' + ${o.address1} + ' ' + ${o.address2 ?: ''} + ' [' + ${o.region.label()} + ']'"></p>
+            <p class="text-xs text-gray-500" th:text="${o.entranceType.label()} + (${o.entranceNote != null} ? ' ' + ${o.entranceNote} : '') + (${o.requestNote != null} ? ' · ' + ${o.requestNote} : '')"></p>
+        </div>
+        <div class="rounded-lg bg-white p-5">
+            <p class="mb-2 font-bold">결제 (모의)</p>
+            <p>상품 <span th:text="${#numbers.formatInteger(o.totalProductAmount, 1, 'COMMA')}"></span>원 + 배송비
+                <span th:text="${#numbers.formatInteger(o.shippingFee, 1, 'COMMA')}"></span>원 =
+                <b th:text="${#numbers.formatInteger(o.paidAmount, 1, 'COMMA')} + '원'"></b></p>
+            <p th:if="${payment != null}" class="text-gray-600"
+               th:text="${payment.method.label()} + ' · ' + ${payment.status} + (${payment.virtualAccount != null} ? ' · ' + ${payment.virtualAccount} : '')"></p>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[640px] text-left">
+            <thead class="bg-gray-50 text-xs text-gray-500"><tr><th class="px-4 py-2">상품</th><th class="px-4 py-2">배송</th>
+                <th class="px-4 py-2 text-right">단가 x 수량</th><th class="px-4 py-2 text-right">금액</th><th class="px-4 py-2">도착 예정</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="i : ${o.items}">
+                <td class="px-4 py-2"><span th:text="${i.productName}"></span>
+                    <span th:if="${i.optionText != null}" class="block text-xs text-gray-500" th:text="${i.optionText}"></span></td>
+                <td class="px-4 py-2" th:text="${i.deliveryType.label()}"></td>
+                <td class="px-4 py-2 text-right" th:text="${#numbers.formatInteger(i.unitPrice, 1, 'COMMA')} + ' x ' + ${i.quantity}"></td>
+                <td class="px-4 py-2 text-right" th:text="${#numbers.formatInteger(i.lineAmount, 1, 'COMMA')} + '원'"></td>
+                <td class="px-4 py-2" th:text="${@fmt.day(i.promisedDate)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="rounded-lg bg-white p-5">
+        <p class="mb-2 font-bold">처리 이력</p>
+        <ul class="space-y-1 text-xs text-gray-600">
+            <li th:each="e : ${events}"><span class="text-gray-400" th:text="${@fmt.dateTime(e.createdAt)}"></span>
+                <span th:text="${e.fromStatus != null} ? ${e.fromStatus.label()} + ' → ' : ''"></span><b th:text="${e.toStatus.label()}"></b>
+                <span class="text-gray-400" th:text="'[' + ${e.actor} + ']'"></span>
+                <span th:if="${e.note != null}" th:text="${e.note}"></span></li>
+        </ul>
+    </div>
+</main>
+</body>
+</html>

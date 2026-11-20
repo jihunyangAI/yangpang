@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'settlements')}">
+<head><title>정산 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-5">
+    <div>
+        <h1 class="text-xl font-bold">정산 현황</h1>
+        <p class="text-xs text-gray-500">판매자별 주 단위 정산(구매확정 기준, 수수료 10% · 물류 대행 +5% · 광고비 차감). 양팡 수익 = 수수료 + 광고비. 모두 모의 금액이에요.
+            양팡 직매입은 정산하지 않아요.</p>
+    </div>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[820px] text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500"><tr><th class="px-3 py-2">주</th><th class="px-3 py-2 text-right">판매자</th>
+                <th class="px-3 py-2 text-right">상품</th><th class="px-3 py-2 text-right">판매금액</th><th class="px-3 py-2 text-right">수수료</th>
+                <th class="px-3 py-2 text-right">광고비</th><th class="px-3 py-2 text-right">지급액</th><th class="px-3 py-2 text-right">양팡 수익</th>
+                <th class="px-3 py-2">지급</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:if="${#lists.isEmpty(weeks)}"><td colspan="9" class="px-3 py-8 text-center text-gray-400">정산 내역이 없어요 (시뮬레이터가 지난주까지 구매확정분을 정산해요)</td></tr>
+            <tr th:each="w : ${weeks}">
+                <td class="px-3 py-2" th:text="${#temporals.format(w.start, 'yyyy.MM.dd')} + ' 주'">주</td>
+                <td class="px-3 py-2 text-right" th:text="${w.sellers}"></td>
+                <td class="px-3 py-2 text-right" th:text="${w.items}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(w.sales, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(w.commission, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(w.adCost, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right font-bold" th:text="${#numbers.formatInteger(w.payout, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right text-brand-700" th:text="${#numbers.formatInteger(w.revenue(), 1, 'COMMA')}"></td>
+                <td class="px-3 py-2" th:text="${w.paid} + ' / ' + ${w.sellers} + ' 지급'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold">판매자별 누적</h2>
+        <table class="w-full min-w-[720px] text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500"><tr><th class="px-3 py-2">판매자</th><th class="px-3 py-2 text-right">정산 주</th>
+                <th class="px-3 py-2 text-right">판매금액</th><th class="px-3 py-2 text-right">수수료</th><th class="px-3 py-2 text-right">광고비</th>
+                <th class="px-3 py-2 text-right">지급액</th><th class="px-3 py-2 text-right">지급 예정</th></tr></thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="s : ${bySeller}">
+                <td class="px-3 py-2"><a th:href="@{/admin/sellers/{id}(id=${s.id})}" class="text-brand-700 hover:underline" th:text="${s.name}"></a></td>
+                <td class="px-3 py-2 text-right" th:text="${s.weeks}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(s.sales, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(s.commission, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(s.ad_cost, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right font-bold" th:text="${#numbers.formatInteger(s.payout, 1, 'COMMA')}"></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(s.scheduled, 1, 'COMMA')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

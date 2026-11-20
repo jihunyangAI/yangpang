@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>출석체크 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="mx-auto w-full max-w-xl px-4 py-6 text-sm md:py-8">
+        <div class="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-300 p-6 text-center">
+            <p class="text-4xl">📅</p>
+            <h1 class="mt-2 text-2xl font-black">매일 출석체크</h1>
+            <p class="mt-1 text-gray-800"
+               th:text="|하루 한 번 ${#numbers.formatInteger(policy['ATTENDANCE_DAILY_CASH'], 1, 'COMMA')}원, ${streakDays}일 연속이면 ${#numbers.formatInteger(policy['ATTENDANCE_STREAK_BONUS'], 1, 'COMMA')}원 더 (양팡캐시, 모의)|">혜택</p>
+            <th:block sec:authorize="isAuthenticated()">
+                <form th:unless="${m.checkedToday}" th:action="@{/attendance}" method="post" class="mt-4">
+                    <button class="h-12 rounded-full bg-gray-900 px-8 text-base font-bold text-white hover:bg-black">오늘 출석하기</button></form>
+                <p th:if="${m.checkedToday}" class="mt-4 inline-block rounded-full bg-white/70 px-5 py-2 font-bold">✅ 오늘 출석 완료 · 내일 또 만나요</p>
+                <p class="mt-3 text-xs text-gray-700" th:text="|지금 ${m.streak}일 연속 · 이번 달 ${#numbers.formatInteger(m.totalReward, 1, 'COMMA')}원 적립|">현황</p>
+            </th:block>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/login(continue='/attendance')}" class="mt-4 inline-block rounded-full bg-gray-900 px-8 py-3 font-bold text-white">로그인하고 출석하기</a>
+        </div>
+
+        <section class="mt-5 rounded-3xl bg-white p-5">
+            <h2 class="mb-3 text-center font-bold" th:text="|${m.month.year}년 ${m.month.monthValue}월|">11월</h2>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                <span th:each="d : ${ {'일','월','화','수','목','금','토'} }" class="pb-1 text-gray-400" th:text="${d}">일</span>
+                <div th:each="c : ${cells}" class="flex aspect-square flex-col items-center justify-center rounded-xl"
+                     th:classappend="${c.date == null} ? '' : (${c.reward != null} ? 'bg-yellow-100' : (${c.today} ? 'ring-2 ring-orange-400' : 'bg-gray-50'))">
+                    <th:block th:if="${c.date != null}">
+                        <span th:classappend="${c.future} ? 'text-gray-300'" th:text="${c.date.dayOfMonth}">1</span>
+                        <span th:if="${c.reward != null}" class="text-base leading-none" th:title="|${c.reward}원|">🟡</span>
+                    </th:block>
+                </div>
+            </div>
+        </section>
+        <p class="mt-3 text-center text-xs text-gray-500">날짜는 시뮬레이션 시계 기준이에요. 적립 내역은 <a th:href="@{/my/cash}" class="underline">양팡캐시</a>에서 볼 수 있어요.</p>
+    </div>
+</main>
+</body>
+</html>

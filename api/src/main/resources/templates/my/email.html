@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>메일 (모의) - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="mx-auto w-full max-w-xl px-4 py-6 text-sm md:py-8">
+        <a th:href="@{/my/emails}" class="text-xs text-gray-500 hover:underline">‹ 메일함</a>
+        <p class="mt-2 text-xs text-gray-500" th:text="'받는 사람 ' + ${m.to} + ' · ' + ${@fmt.dateTime(m.createdAt)} + ' · 모의 발송'">정보</p>
+        <h1 class="mt-1 text-lg font-bold" th:text="${m.subject}">제목</h1>
+        <!-- 메일 본문처럼 보이는 카드 -->
+        <div class="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div class="border-b border-gray-100 px-6 py-4 text-2xl"><span th:replace="~{fragments/logo :: logo('')}"></span></div>
+            <div class="px-6 py-6">
+                <p class="whitespace-pre-line leading-relaxed text-gray-800" th:text="${m.body}">본문</p>
+                <a th:if="${safeLink != null}" th:href="${safeLink}" class="btn-primary mt-6 h-11 px-6">YangPang에서 확인하기</a>
+            </div>
+            <p class="bg-gray-50 px-6 py-3 text-[11px] text-gray-400">이 메일은 연구용 가상 쇼핑몰 YangPang이 기록만 한 모의 메일이에요. 수신 설정은 마이양팡 &gt; 알림함에서 바꿀 수 있어요.</p>
+        </div>
+    </div>
+</main>
+</body>
+</html>

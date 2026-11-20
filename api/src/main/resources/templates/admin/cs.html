@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'cs')}">
+<head><title>1:1 문의 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-xl font-bold">1:1 문의</h1>
+        <nav class="flex gap-1 text-xs">
+            <a th:href="@{/admin/cs(status='WAITING')}" class="rounded-full px-3 py-1.5" th:classappend="${status == 'WAITING'} ? 'bg-brand-600 text-white' : 'bg-white'">답변 대기</a>
+            <a th:href="@{/admin/cs(status='ANSWERED')}" class="rounded-full px-3 py-1.5" th:classappend="${status == 'ANSWERED'} ? 'bg-brand-600 text-white' : 'bg-white'">답변 완료</a>
+            <a th:href="@{/admin/faq}" class="rounded-full bg-white px-3 py-1.5">FAQ 관리 ›</a>
+        </nav>
+    </div>
+    <p th:if="${#lists.isEmpty(inquiries)}" class="rounded-lg bg-white py-10 text-center text-gray-400" th:text="${status == 'WAITING'} ? '답변을 기다리는 문의가 없어요' : '답변한 문의가 없어요'"></p>
+    <article th:each="i : ${inquiries}" class="rounded-lg bg-white p-4 text-sm">
+        <p class="text-xs text-gray-500" th:text="${i.category.label()} + ' · ' + ${i.memberEmail} + ' · ' + ${@fmt.dateTime(i.createdAt)} + (${i.orderNo != null} ? ' · 주문 ' + ${i.orderNo} : '')">정보</p>
+        <p class="mt-1 font-bold" th:text="${i.title}">제목</p>
+        <p class="mt-1 whitespace-pre-line text-gray-700" th:text="${i.content}">내용</p>
+        <form th:if="${!i.answered()}" th:action="@{/admin/cs/{id}/answer(id=${i.id})}" method="post" class="mt-3 flex gap-2">
+            <textarea name="answer" required minlength="5" maxlength="2000" rows="2" class="input min-w-0 flex-1 text-sm" placeholder="답변 (회원에게 알림이 가요)" aria-label="답변"></textarea>
+            <button class="btn-primary h-10 shrink-0 px-4 text-sm">답변</button>
+        </form>
+        <p th:if="${i.answered()}" class="mt-3 whitespace-pre-line rounded bg-gray-50 p-3 text-gray-700" th:text="'답변 (' + ${@fmt.dateTime(i.answeredAt)} + '): ' + ${i.answer}">답변</p>
+    </article>
+</main>
+</body>
+</html>

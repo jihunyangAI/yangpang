@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 말풍선들 (질문 하나마다 #chat-log 끝에 붙는다). html은 서버에서 이스케이프한 뒤 양팡 링크만 살린 값 -->
+<th:block th:fragment="turns">
+    <div th:each="t : ${turns}" class="flex" th:classappend="${t.role == 'user'} ? 'justify-end'">
+        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
+             th:classappend="${t.role == 'user'} ? 'bg-brand-600 text-white' : (${t.role == 'error'} ? 'bg-rose-50 text-rose-700' : 'bg-gray-100 text-gray-900')"
+             th:utext="${t.html}">말</div>
+    </div>
+</th:block>
+
+<!-- 패널을 열 때 불러오는 대화 전체 -->
+<th:block th:fragment="history">
+    <div class="rounded-2xl bg-violet-50 px-3 py-2 text-xs text-violet-900">
+        안녕하세요! 양팡 쇼핑 도우미예요. 상품 찾기, 배송·반품 규칙, 내 주문 상태를 물어보세요.
+        <span class="block text-violet-700/70" th:text="'Claude가 답해요 · 틀릴 수 있어요 · 연구용 가짜 데이터 · 대화당 질문 ' + ${maxQuestions} + '개'">안내</span>
+    </div>
+    <th:block th:replace="~{ai/chat :: turns}"></th:block>
+</th:block>
+
+<!-- 화면 오른쪽 아래 떠 있는 챗봇 (AI가 켜져 있을 때만 레이아웃에 들어간다) -->
+<details th:fragment="widget" id="chat-widget" class="group fixed bottom-24 right-4 z-40 md:bottom-6 md:right-6">
+    <summary class="ml-auto flex h-14 w-14 cursor-pointer list-none items-center justify-center rounded-full bg-violet-700 text-white shadow-lg hover:bg-violet-800 [&::-webkit-details-marker]:hidden"
+             aria-label="쇼핑 도우미 열기">
+        <svg class="h-6 w-6 group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>
+        <span class="hidden text-2xl leading-none group-open:block" aria-hidden="true">×</span>
+    </summary>
+    <div class="absolute bottom-16 right-0 flex h-[70vh] max-h-[560px] w-[min(92vw,380px)] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <p class="font-bold">✨ 쇼핑 도우미</p>
+            <button type="button" class="text-xs text-gray-500 hover:text-gray-900" hx-post="/chat/reset" hx-target="#chat-log" hx-swap="innerHTML">새 대화</button>
+        </div>
+        <div id="chat-log" class="flex-1 space-y-2 overflow-y-auto p-3"
+             hx-get="/chat" hx-trigger="toggle from:closest details once" hx-swap="innerHTML">
+            <p class="text-xs text-gray-400">불러오는 중...</p>
+        </div>
+        <form class="flex gap-2 border-t border-gray-100 p-3" hx-post="/chat" hx-target="#chat-log" hx-swap="beforeend"
+              hx-disabled-elt="find button" hx-indicator="#chat-wait" hx-on::after-request="this.reset(); var l=document.getElementById('chat-log'); l.scrollTop=l.scrollHeight">
+            <input name="message" required maxlength="500" autocomplete="off" class="input h-10 min-w-0 flex-1 text-sm" placeholder="예: 2만원 이하 요가매트 추천해 줘" aria-label="질문">
+            <button class="btn-primary h-10 shrink-0 px-4 text-sm">보내기</button>
+        </form>
+        <p id="chat-wait" class="htmx-indicator px-3 pb-2 text-xs text-gray-400">답을 만드는 중...</p>
+    </div>
+</details>
+</body>
+</html>

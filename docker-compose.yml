@@ -1,0 +1,32 @@
+# 개발용 인프라. 실행: docker compose up -d
+# (api·seed 앱을 bootRun 하면 Spring Boot가 자동으로 실행해 줌)
+services:
+  postgres:
+    image: postgres:18
+    container_name: yangpang-postgres
+    environment:
+      POSTGRES_DB: yangpang
+      POSTGRES_USER: yangpang
+      POSTGRES_PASSWORD: yangpang
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - yangpang-pgdata:/var/lib/postgresql
+
+  # 상품 검색 엔진 (기획서 10장, M2 도입). 꺼져 있으면 앱은 PostgreSQL 검색으로 대신한다
+  meilisearch:
+    image: getmeili/meilisearch:v1.56.2
+    container_name: yangpang-meilisearch
+    environment:
+      MEILI_MASTER_KEY: yangpang-dev-master-key   # 개발용
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "7700:7700"
+    volumes:
+      - yangpang-meili:/meili_data
+
+volumes:
+  yangpang-pgdata:
+  yangpang-meili:

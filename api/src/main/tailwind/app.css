@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+/* Thymeleaf 템플릿에서 사용한 클래스를 찾는다 */
+@source "../resources/templates";
+@source "../resources/static/js";
+/* 배너 테마 색 클래스가 Java 코드에 있다 */
+@source "../../../../domain/src/main/java/com/yangpang/domain/display";
+
+/*
+ * ===== Yangpang 디자인 토큰 — 시안 C "따뜻한 에디토리얼" (2026-11-20, yangpang.md 11장) =====
+ * 크림 바탕 + 테라코타 다홍(brand) + 청회색(sea), 제목은 명조, 큰 둥근 모서리.
+ * gray·white도 따뜻한 톤으로 덮어써서 기존 화면이 저절로 같은 분위기가 되게 한다.
+ */
+@theme {
+  --font-sans: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-serif: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif;
+
+  /* 주색: 테라코타 다홍 (버튼·로고·할인) */
+  --color-brand-50: #fbf1ec;
+  --color-brand-100: #f3e1d8;
+  --color-brand-200: #e8c3b3;
+  --color-brand-300: #da9c84;
+  --color-brand-400: #cb7258;
+  --color-brand-500: #c0573a;
+  --color-brand-600: #b8432a;
+  --color-brand-700: #8e3420;
+  --color-brand-800: #6e2918;
+  --color-brand-900: #4a1c10;
+
+  /* 보조색: 청회색 (장바구니·배송·보조 버튼) */
+  --color-sea-50: #eef2f7;
+  --color-sea-100: #dee5ee;
+  --color-sea-200: #c1cfdf;
+  --color-sea-500: #4f6d8f;
+  --color-sea-600: #3e5a7e;
+  --color-sea-700: #2f4865;
+  --color-sea-900: #1e2f44;
+
+  /* 따뜻한 회색 (글자·선·면) */
+  --color-gray-50: #faf6f0;
+  --color-gray-100: #f3ece3;
+  --color-gray-200: #e4d9cb;
+  --color-gray-300: #d3c6b6;
+  --color-gray-400: #a3968a;
+  --color-gray-500: #73685e;
+  --color-gray-600: #6a615a;
+  --color-gray-700: #4e4640;
+  --color-gray-800: #3a332e;
+  --color-gray-900: #2a2522;
+  --color-white: #fffdf9;
+  --color-cream: #f6f0e8;       /* 페이지 바탕 */
+
+  --color-sale: #b8432a;        /* 할인율 */
+  --color-arrival: #3e5a7e;     /* 도착 보장 문구 */
+  --color-plus: #2f4865;        /* 양팡플러스 */
+  --color-fresh: #4f7350;       /* 양팡프레시 */
+  --color-star: #d9822b;        /* 별점 */
+
+  --radius-card: 1.5rem;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-cream text-gray-900 antialiased; }
+  /* 화면 제목은 명조 (관리자·셀러센터는 body.font-plain 으로 고딕 유지) */
+  h1, h2 { font-family: var(--font-serif); letter-spacing: -0.01em; }
+  body.font-plain h1, body.font-plain h2 { font-family: var(--font-sans); letter-spacing: normal; }
+}
+
+/* 공통 컴포넌트 클래스 (Tailwind v4: @utility로 정의해야 서로 @apply 가능) */
+@utility container-page { @apply mx-auto w-full max-w-[1200px] px-4; }
+@utility btn { @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold transition-colors; }
+@utility btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700; }
+@utility btn-secondary { @apply btn border-[1.5px] border-sea-600 bg-white text-sea-600 hover:bg-sea-50; }
+@utility btn-outline { @apply btn border border-gray-200 bg-white text-gray-800 hover:bg-gray-50; }
+@utility input { @apply w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100; }
+@utility badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold leading-none; }
+@utility card { @apply rounded-3xl bg-white; }
+@utility section-title { @apply font-serif text-xl font-bold md:text-2xl; }
+/* 할인율 동그라미 배지 (상품 사진 오른쪽 위) */
+@utility off-badge { @apply flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-[13px] font-bold text-white; }
+
+/* 별점: 연한 별 위에 진한 별을 너비만큼 겹친다 */
+.stars { position: relative; display: inline-block; font-size: 12px; letter-spacing: 1px; color: #e4d9cb; line-height: 1; }
+.stars::before { content: "★★★★★"; }
+.stars > span { position: absolute; inset: 0 auto 0 0; overflow: hidden; color: var(--color-star); white-space: nowrap; }
+.stars > span::before { content: "★★★★★"; }
+
+/* 가로 스크롤 영역의 스크롤바 숨김 */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/*
+ * ===== YangPang 로고 (2026-11-21) =====
+ * 빨강 "Yang" + 파랑 "Pang", 노랑 팝아트 그림자, 둥근 Fredoka 글꼴, 글자마다 살짝 기울기.
+ * 글자마다 다른 색을 돌려 쓰는 방식(쿠팡 로고)은 피하고 단어 단위로 두 색만 쓴다.
+ */
+.yp-logo {
+  --yp-red: #e5352b;
+  --yp-yellow: #ffc61a;
+  --yp-blue: #2458d6;
+  display: inline-flex;
+  align-items: baseline;
+  font-family: "Fredoka", "Noto Sans KR", system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-shadow: 0.06em 0.06em 0 var(--yp-yellow);
+}
+.yp-logo i {
+  display: inline-block;
+  font-style: normal;
+  transition: transform 0.18s ease;
+}
+.yp-logo i:nth-child(odd) { transform: rotate(-7deg) translateY(-0.02em); }
+.yp-logo i:nth-child(even) { transform: rotate(6deg) translateY(0.03em); }
+.yp-logo .yp-yang { color: var(--yp-red); }
+.yp-logo .yp-pang { color: var(--yp-blue); margin-left: 0.04em; }
+.yp-logo .yp-pang i:first-child { margin-left: 0.02em; }
+/* 어두운 바탕(셀러센터·관리자)용: 파랑을 밝게 */
+.yp-logo--dark .yp-pang { color: #8fb2ff; }
+.yp-logo--dark .yp-yang { color: #ff6a5e; }
+@media (prefers-reduced-motion: no-preference) {
+  a:hover > .yp-logo i { animation: yp-hop 0.45s ease both; }
+  a:hover > .yp-logo i:nth-child(2) { animation-delay: 0.04s; }
+  a:hover > .yp-logo i:nth-child(3) { animation-delay: 0.08s; }
+  a:hover > .yp-logo i:nth-child(4) { animation-delay: 0.12s; }
+  a:hover > .yp-logo .yp-pang i { animation-delay: 0.16s; }
+}
+@keyframes yp-hop {
+  40% { transform: translateY(-0.18em) rotate(0deg); }
+  100% { transform: none; }
+}

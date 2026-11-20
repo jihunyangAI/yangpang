@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'sellers')}">
+<head><title>판매자 상세 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-5">
+    <div>
+        <a th:href="@{/admin/sellers}" class="text-xs text-gray-500 hover:underline">‹ 판매자 목록</a>
+        <h1 class="mt-1 text-xl font-bold"><span th:text="${s.name}">판매자</span>
+            <span class="badge ml-1 align-middle" th:classappend="${s.suspended} ? 'bg-rose-600 text-white' : (${s.active} ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-500')"
+                  th:text="${s.suspended} ? '판매 정지' : (${s.active} ? '판매 중' : ${s.status})">상태</span></h1>
+        <p class="text-xs text-gray-500" th:text="${s.sellerType.label()} + ' · ' + ${s.businessNo} + ' · 대표 ' + ${s.ceoName}">정보</p>
+    </div>
+
+    <section class="rounded-lg bg-white p-4">
+        <h2 class="mb-2 font-bold">판매자 점수 <span class="text-xs font-normal text-gray-400">리뷰 평점 40 + 판매자 귀책 반품·교환 35 + 문의 48시간 답변 25 · 매일 계산 · 40점 미만이면 자동 경고(7일에 한 번)</span></h2>
+        <p th:if="${score == null}" class="text-sm text-gray-400">아직 계산 전이에요 (양팡 직매입은 계산하지 않아요)</p>
+        <div th:if="${score != null}" class="grid gap-4 md:grid-cols-[160px_1fr]">
+            <div class="text-center">
+                <p class="text-4xl font-black" th:text="${#numbers.formatDecimal(score.score, 1, 1)}">90</p>
+                <p class="text-sm font-bold" th:text="${score.grade()}">우수</p>
+            </div>
+            <div>
+                <dl class="grid gap-2 text-xs sm:grid-cols-3">
+                    <div class="rounded bg-gray-50 p-2"><dt class="text-gray-500">리뷰 평점</dt>
+                        <dd><b th:text="${#numbers.formatDecimal(score.ratingPart(), 1, 1)} + ' / 40'"></b>
+                            <span class="text-gray-400" th:text="${score.ratingAvg == null} ? '리뷰 없음' : ${score.ratingAvg} + '점 · ' + ${score.reviewCount} + '개'"></span></dd></div>
+                    <div class="rounded bg-gray-50 p-2"><dt class="text-gray-500">판매자 귀책 반품·교환</dt>
+                        <dd><b th:text="${#numbers.formatDecimal(score.claimPart(), 1, 1)} + ' / 35'"></b>
+                            <span class="text-gray-400" th:text="${score.faultClaims} + '건 / ' + ${score.delivered} + '개'"></span></dd></div>
+                    <div class="rounded bg-gray-50 p-2"><dt class="text-gray-500">문의 48시간 답변</dt>
+                        <dd><b th:text="${#numbers.formatDecimal(score.inquiryPart(), 1, 1)} + ' / 25'"></b>
+                            <span class="text-gray-400" th:text="${score.answered48h} + ' / ' + ${score.inquiries} + '건'"></span></dd></div>
+                </dl>
+                <div th:if="${#lists.size(trend) > 1}" class="mt-3 flex h-16 items-end gap-px" role="img" aria-label="최근 30일 점수 추이">
+                    <div th:each="t : ${trend}" class="flex-1 rounded-t bg-brand-400" th:style="'height:' + ${t[1]} + '%'" th:title="${#numbers.formatDecimal(t[1], 1, 1)}"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white p-4">
+        <h2 class="mb-3 font-bold">제재 <span class="text-xs font-normal text-gray-400">사유 5자 이상 · 판매 정지는 판매 중인 오퍼를 모두 멈추고, 해제하면 그 오퍼만 되살려요</span></h2>
+        <div class="grid gap-2 md:grid-cols-3" th:unless="${s.sellerType.name() == 'DIRECT'}">
+            <form th:action="@{/admin/sellers/{id}/warn(id=${s.id})}" method="post" class="flex gap-2">
+                <input name="reason" required minlength="5" maxlength="300" class="input h-9 min-w-0 flex-1 text-sm" placeholder="경고 사유" aria-label="경고 사유">
+                <button class="btn-outline h-9 shrink-0 px-3 text-sm">경고</button></form>
+            <form th:if="${s.active}" th:action="@{/admin/sellers/{id}/suspend(id=${s.id})}" method="post" class="flex gap-2">
+                <input name="reason" required minlength="5" maxlength="300" class="input h-9 min-w-0 flex-1 text-sm" placeholder="판매 정지 사유" aria-label="판매 정지 사유">
+                <button class="h-9 shrink-0 rounded-full bg-rose-600 px-3 text-sm font-bold text-white">판매 정지</button></form>
+            <form th:if="${s.suspended}" th:action="@{/admin/sellers/{id}/lift(id=${s.id})}" method="post" class="flex gap-2">
+                <input name="reason" required minlength="5" maxlength="300" class="input h-9 min-w-0 flex-1 text-sm" placeholder="해제 사유" aria-label="해제 사유">
+                <button class="btn-primary h-9 shrink-0 px-3 text-sm">정지 해제</button></form>
+        </div>
+        <ul class="mt-3 divide-y divide-gray-100 text-xs">
+            <li th:if="${#lists.isEmpty(sanctions)}" class="py-3 text-gray-400">제재 이력이 없어요</li>
+            <li th:each="x : ${sanctions}" class="flex gap-3 py-2">
+                <span class="badge shrink-0" th:classappend="${x.type.name() == 'LIFT'} ? 'bg-emerald-50 text-emerald-700' : (${x.type.name() == 'SUSPEND'} ? 'bg-rose-600 text-white' : 'bg-yellow-100 text-yellow-800')"
+                      th:text="${x.type.label()}">경고</span>
+                <span class="min-w-0 flex-1" th:text="${x.reason} + (${x.offers > 0} ? ' (오퍼 ' + ${x.offers} + '개 멈춤)' : '')">사유</span>
+                <span class="shrink-0 text-gray-400" th:text="${@fmt.dateTime(x.createdAt)} + (${x.actor == 'SYSTEM'} ? ' · 자동' : ' · 운영자')"></span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold">최근 정산</h2>
+        <table class="w-full text-left text-xs">
+            <tbody class="divide-y divide-gray-100">
+            <tr th:if="${#lists.isEmpty(settlements)}"><td class="px-4 py-4 text-gray-400">정산 내역이 없어요</td></tr>
+            <tr th:each="r : ${settlements}">
+                <td class="px-4 py-2" th:text="${#temporals.format(r.periodStart, 'MM.dd')} + ' ~ ' + ${#temporals.format(r.lastDay(), 'MM.dd')}"></td>
+                <td class="px-4 py-2 text-right" th:text="${r.itemCount} + '개'"></td>
+                <td class="px-4 py-2 text-right" th:text="'판매 ' + ${#numbers.formatInteger(r.salesAmount, 1, 'COMMA')}"></td>
+                <td class="px-4 py-2 text-right" th:text="'수수료 ' + ${#numbers.formatInteger(r.commission, 1, 'COMMA')}"></td>
+                <td class="px-4 py-2 text-right" th:text="'광고 ' + ${#numbers.formatInteger(r.adCost, 1, 'COMMA')}"></td>
+                <td class="px-4 py-2 text-right font-bold" th:text="${#numbers.formatInteger(r.payout, 1, 'COMMA')} + '원'"></td>
+                <td class="px-4 py-2" th:text="${r.paid()} ? '지급 완료' : '지급 예정'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

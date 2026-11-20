@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'home')}">
+<head><title>홈 화면 구성 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-3xl">
+    <div class="mb-1 flex items-center justify-between">
+        <h1 class="text-xl font-bold">홈 화면 구성</h1>
+        <a th:href="@{/}" target="_blank" class="btn-outline bg-white">홈 보기 ›</a>
+    </div>
+    <p class="mb-4 text-xs text-gray-500">섹션 순서·노출 여부·제목을 바꿉니다. 내용(배너·기획전·특가)은 각 메뉴에서 관리하고, 내용이 없는 섹션은 저절로 숨겨져요.</p>
+
+    <!-- 위·아래 이동 버튼은 각각 별도 폼 (저장 폼 안에 폼을 넣지 않기 위해 form 속성 사용) -->
+    <form th:each="s : ${sections}" th:id="'up-' + ${s.kind}" th:action="@{/admin/home/move}" method="post" class="hidden">
+        <input type="hidden" name="kind" th:value="${s.kind}"><input type="hidden" name="dir" value="up"></form>
+    <form th:each="s : ${sections}" th:id="'down-' + ${s.kind}" th:action="@{/admin/home/move}" method="post" class="hidden">
+        <input type="hidden" name="kind" th:value="${s.kind}"><input type="hidden" name="dir" value="down"></form>
+
+    <form th:action="@{/admin/home}" method="post" class="rounded-lg bg-white">
+        <ul class="divide-y divide-gray-100">
+            <li th:each="s, st : ${sections}" class="flex flex-wrap items-center gap-3 px-4 py-3">
+                <span class="flex flex-col">
+                    <button type="submit" th:form="'up-' + ${s.kind}" th:disabled="${st.first}" class="text-xs text-gray-400 hover:text-gray-900 disabled:opacity-30" aria-label="위로">▲</button>
+                    <button type="submit" th:form="'down-' + ${s.kind}" th:disabled="${st.last}" class="text-xs text-gray-400 hover:text-gray-900 disabled:opacity-30" aria-label="아래로">▼</button>
+                </span>
+                <input type="hidden" th:name="'order_' + ${s.kind}" th:value="${s.sort_order}">
+                <code class="w-28 text-xs text-gray-400" th:text="${s.kind}"></code>
+                <input th:name="'title_' + ${s.kind}" th:value="${s.title}" maxlength="50" class="input min-w-40 flex-1">
+                <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" th:name="'visible_' + ${s.kind}" value="true" th:checked="${s.visible}" class="h-4 w-4 accent-brand-600"> 보이기</label>
+            </li>
+        </ul>
+        <div class="border-t border-gray-100 p-4"><button class="btn-primary">저장</button></div>
+    </form>
+</main>
+</body>
+</html>

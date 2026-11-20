@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>브랜드관 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-6">
+        <h1 class="text-2xl font-black">🏷️ 브랜드관</h1>
+        <p class="mt-1 text-sm text-gray-500">많이 팔린 브랜드 순 · 모든 브랜드는 연구용 가짜 브랜드예요</p>
+        <ul class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            <li th:each="b : ${brands}">
+                <a th:href="@{/brands/{id}(id=${b.id})}" class="flex h-full flex-col items-center rounded-lg border border-gray-200 p-4 text-center hover:border-brand-500">
+                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-xl font-black text-brand-700" th:text="${b.initial()}">브</span>
+                    <b class="mt-2 text-sm" th:text="${b.name}">브랜드</b>
+                    <span class="mt-0.5 text-xs text-gray-500" th:text="'상품 ' + ${b.products} + '개' + (${b.rating != null} ? ' · ★' + ${b.rating} : '')"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</main>
+</body>
+</html>

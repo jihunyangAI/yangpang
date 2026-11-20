@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!-- 관리자 화면 공통 레이아웃. 사용: th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'products')}" -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content, active)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title th:replace="${title}">관리자</title>
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/htmx.min.js}" defer></script>
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body class="font-plain min-h-screen bg-gray-100 text-sm md:flex">
+<aside class="bg-gray-900 text-gray-300 md:min-h-screen md:w-56 md:shrink-0">
+    <div class="flex items-center justify-between px-4 py-4 md:block">
+        <a th:href="@{/admin}" class="text-lg font-black text-white" aria-label="YangPang 관리자"><span th:replace="~{fragments/logo :: logo('yp-logo--dark')}"></span> <span class="text-brand-500">관리자</span></a>
+        <a th:href="@{/}" class="text-xs text-gray-400 hover:text-white md:mt-1 md:block">쇼핑몰로 ›</a>
+    </div>
+    <nav class="no-scrollbar flex overflow-x-auto md:block">
+        <a th:each="m : ${ { {'dashboard','/admin','대시보드'}, {'products','/admin/products','상품 관리'},
+                             {'categories','/admin/categories','카테고리'}, {'sellers','/admin/sellers','판매자'}, {'settlements','/admin/settlements','정산'}, {'ads','/admin/ads','광고'}, {'orders','/admin/orders','주문 관리'}, {'claims','/admin/claims','취소·반품·교환'}, {'inquiries','/admin/inquiries','상품문의'}, {'cs','/admin/cs','고객센터'}, {'emails','/admin/emails','보낸 메일(모의)'}, {'coupons','/admin/coupons','쿠폰'}, {'deals','/admin/deals','오늘의 특가'}, {'exhibitions','/admin/exhibitions','기획전'}, {'ranking','/admin/ranking','랭킹 가중치'}, {'synonyms','/admin/synonyms','검색 동의어'}, {'home','/admin/home','홈 화면 구성'}, {'banners','/admin/banners','전시(배너)'},
+                             {'policies','/admin/policies','운영 기준값'}, {'simulator','/admin/simulator','시뮬레이터'} } }"
+           th:href="${m[1]}" th:text="${m[2]}" class="block shrink-0 px-4 py-2.5"
+           th:classappend="${active == m[0]} ? 'bg-gray-800 font-bold text-white' : 'hover:bg-gray-800 hover:text-white'">메뉴</a>
+    </nav>
+    <p class="hidden px-4 pt-6 text-xs text-gray-500 md:block">회원·전시·CS 관리는 이후 단계에서 추가됩니다</p>
+</aside>
+<div class="min-w-0 flex-1 p-4 md:p-8">
+    <main th:replace="${content}"></main>
+</div>
+<div id="toast" aria-live="polite" class="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"><div
+        th:if="${flashMessage != null}" th:text="${flashMessage}"
+        class="pointer-events-auto rounded-full bg-gray-900/90 px-5 py-3 text-sm text-white shadow-lg"></div></div>
+</body>
+</html>

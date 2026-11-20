@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'settlements')}">
+<head><title>정산 상세 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <a th:href="@{/seller/settlements}" class="text-xs text-gray-500 hover:underline">‹ 정산 목록</a>
+    <h1 class="mb-3 mt-1 text-xl font-bold" th:text="${#temporals.format(r.periodStart, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(r.lastDay(), 'MM.dd')} + ' 정산'">정산</h1>
+    <dl class="mb-4 grid grid-cols-2 gap-2 rounded-lg bg-white p-4 text-center text-xs md:grid-cols-6">
+        <div><dt class="text-gray-500">상품</dt><dd class="font-bold" th:text="${r.itemCount}">0</dd></div>
+        <div><dt class="text-gray-500">판매금액</dt><dd class="font-bold" th:text="${#numbers.formatInteger(r.salesAmount, 1, 'COMMA')}">0</dd></div>
+        <div><dt class="text-gray-500">수수료</dt><dd class="font-bold text-rose-600" th:text="'-' + ${#numbers.formatInteger(r.commission, 1, 'COMMA')}">0</dd></div>
+        <div><dt class="text-gray-500">광고비</dt><dd class="font-bold text-rose-600" th:text="'-' + ${#numbers.formatInteger(r.adCost, 1, 'COMMA')}">0</dd></div>
+        <div><dt class="text-gray-500">지급액</dt><dd class="font-black text-indigo-700" th:text="${#numbers.formatInteger(r.payout, 1, 'COMMA')} + '원'">0</dd></div>
+        <div><dt class="text-gray-500">지급</dt><dd class="font-bold" th:text="(${r.paid()} ? '완료 ' : '예정 ') + ${#temporals.format(r.payDate, 'MM.dd')}">예정</dd></div>
+    </dl>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[720px] text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500">
+            <tr><th class="px-3 py-2">구매확정</th><th class="px-3 py-2">주문번호</th><th class="px-3 py-2">상품</th>
+                <th class="px-3 py-2 text-right">단가 × 수량</th><th class="px-3 py-2 text-right">판매금액</th><th class="px-3 py-2 text-right">수수료</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:if="${#lists.isEmpty(items)}"><td colspan="6" class="px-3 py-8 text-center text-gray-400">이 주는 광고비만 있어요</td></tr>
+            <tr th:each="i : ${items}">
+                <td class="px-3 py-2" th:text="${@fmt.dateTime(i.confirmedAt)}">시각</td>
+                <td class="px-3 py-2 font-mono" th:text="${i.orderNo}">번호</td>
+                <td class="px-3 py-2"><span th:text="${i.productName}">상품</span>
+                    <span th:if="${i.optionText != null}" class="text-gray-400" th:text="' · ' + ${i.optionText}"></span>
+                    <span th:if="${i.deliveryType == 'FULFILLMENT'}" class="badge ml-1 bg-gray-100 text-gray-500">물류 대행 +5%</span></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(i.unitPrice, 1, 'COMMA')} + ' × ' + ${i.quantity}">0</td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(i.amount, 1, 'COMMA')}">0</td>
+                <td class="px-3 py-2 text-right text-rose-600" th:text="'-' + ${#numbers.formatInteger(i.commission, 1, 'COMMA')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

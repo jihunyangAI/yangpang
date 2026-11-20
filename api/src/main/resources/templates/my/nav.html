@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<!-- 마이양팡 메뉴. 사용: <nav th:replace="~{my/nav :: nav('orders')}"></nav> -->
+<nav th:fragment="nav(active)" class="no-scrollbar mb-4 flex gap-2 overflow-x-auto text-sm md:mb-0 md:w-48 md:shrink-0 md:flex-col md:gap-0">
+    <p class="mb-3 hidden text-lg font-bold md:block">마이양팡</p>
+    <a th:each="m : ${ { {'home','/my','마이양팡 홈'}, {'notifications','/my/notifications','알림함'}, {'emails','/my/emails','메일함(모의)'}, {'orders','/my/orders','주문목록·배송조회'}, {'subscriptions','/my/subscriptions','정기배송'},
+                          {'claims','/my/claims','취소·반품·교환'}, {'wishlist','/my/wishlist','찜·최근 본 상품'}, {'reviews','/my/reviews','리뷰 관리'}, {'coupons','/my/coupons','쿠폰함'}, {'cash','/my/cash','양팡캐시'}, {'plus','/my/plus','양팡플러스'}, {'partners','/partners','파트너스'}, {'invite','/my/invite','친구초대'},
+                          {'addresses','/my/addresses','배송지 관리'}, {'cs','/cs/inquiries','1:1 문의'}, {'profile','/my/profile','회원정보'} } }"
+       th:href="${m[1]}" th:text="${m[2]}"
+       class="shrink-0 rounded-full border px-3 py-1.5 md:rounded-none md:border-0 md:px-0 md:py-2"
+       th:classappend="${active == m[0]} ? 'border-brand-600 bg-brand-50 font-bold text-brand-700 md:bg-transparent'
+                                         : 'border-gray-200 text-gray-600 hover:text-gray-900'">메뉴</a>
+    <a sec:authorize="isAuthenticated() and principal.biz"
+       th:href="@{/my/biz}" class="shrink-0 rounded-full border px-3 py-1.5 md:rounded-none md:border-0 md:px-0 md:py-2"
+       th:classappend="${active == 'biz'} ? 'border-brand-600 bg-brand-50 font-bold text-brand-700 md:bg-transparent'
+                                         : 'border-gray-200 text-gray-600 hover:text-gray-900'">비즈 · 세금계산서</a>
+
+</nav>
+
+<!-- 주문 한 건 카드 (주문목록·마이양팡 홈 공용) -->
+<div th:fragment="orderCard(o)" class="rounded-lg border border-gray-200 bg-white">
+    <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3 text-sm">
+        <span><b th:text="${@fmt.date(o.orderedAt)}">2026.11.20</b> 주문</span>
+        <a th:href="@{/my/orders/{no}(no=${o.orderNo})}" class="text-brand-700 hover:underline">주문 상세 ›</a>
+    </div>
+    <div class="px-4 py-3">
+        <p class="mb-2 text-sm font-bold"
+           th:classappend="${o.status.step() < 0} ? 'text-gray-400' : (${o.status.step() >= 5} ? 'text-gray-900' : 'text-arrival')">
+            <span th:text="${o.status.label()}">상태</span>
+            <span th:if="${o.status.step() >= 1 and o.status.step() < 5 and !#lists.isEmpty(o.items)}" class="font-normal"
+                  th:text="' · ' + ${@fmt.day(o.items[0].promisedDate)} + ' 도착 예정'"></span>
+        </p>
+        <ul class="space-y-2">
+            <li th:each="i, st : ${o.items}" th:if="${st.index < 2}" class="flex gap-3">
+                <a th:href="@{/products/{id}(id=${i.productId})}" class="h-14 w-14 shrink-0 overflow-hidden rounded bg-gray-100">
+                    <img th:src="${i.imageUrl}" alt="" class="h-full w-full object-cover">
+                </a>
+                <div class="min-w-0 text-sm">
+                    <p class="line-clamp-1" th:text="${i.productName}">상품</p>
+                    <p class="text-xs text-gray-500">
+                        <span th:if="${i.optionText != null}" th:text="${i.optionText} + ' · '"></span>
+                        <span th:text="${#numbers.formatInteger(i.lineAmount, 1, 'COMMA')} + '원 · ' + ${i.quantity} + '개'">0원</span>
+                    </p>
+                </div>
+            </li>
+        </ul>
+        <p th:if="${#lists.size(o.items) > 2}" class="mt-2 text-xs text-gray-500" th:text="'외 ' + ${#lists.size(o.items) - 2} + '개 상품'"></p>
+    </div>
+</div>
+</body>
+</html>

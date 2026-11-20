@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 카테고리 속성 입력칸 (카테고리를 고르면 htmx로 교체) -->
+<fieldset th:fragment="attributes" id="attributes" class="rounded-md border border-gray-200 p-4">
+    <legend class="px-1 font-semibold">카테고리 속성</legend>
+    <p th:if="${attributes == null or #lists.isEmpty(attributes)}" class="text-xs text-gray-400">카테고리를 고르면 입력해야 할 속성이 나타나요</p>
+    <div class="grid gap-3 sm:grid-cols-2" th:if="${attributes != null}">
+        <label th:each="a : ${attributes}" class="block">
+            <span class="mb-1 block font-medium"><span th:text="${a.name}">속성</span>
+                <b th:if="${a.required}" class="text-sale">*</b><span th:unless="${a.required}" class="text-xs font-normal text-gray-400">(선택)</span></span>
+            <select th:if="${!#lists.isEmpty(a.options)}" th:name="'attr[' + ${a.name} + ']'" class="input">
+                <option value="">선택</option>
+                <option th:each="o : ${a.options}" th:value="${o}" th:text="${o}"></option>
+            </select>
+            <input th:if="${#lists.isEmpty(a.options)}" th:name="'attr[' + ${a.name} + ']'" maxlength="100" class="input">
+        </label>
+    </div>
+</fieldset>
+</body>
+</html>

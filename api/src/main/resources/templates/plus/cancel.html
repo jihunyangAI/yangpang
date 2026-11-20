@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>양팡플러스 해지 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 py-10">
+    <!-- 해지 2단계 중 마지막 화면. 설득 화면을 여러 번 넣지 않는다 (기획서 5.8) -->
+    <div class="mx-auto w-full max-w-md px-4 text-sm">
+        <div class="rounded-3xl bg-white p-6">
+            <h1 class="text-xl font-bold">양팡플러스를 해지할까요?</h1>
+            <p class="mt-3 text-gray-600" th:if="${membership != null}">
+                해지해도 <b th:text="${@fmt.date(membership.currentPeriodEnd)}">종료일</b>까지는 무료배송·회원가 혜택이 그대로 유지되고, 그 뒤로는 청구되지 않아요.
+            </p>
+            <form th:action="@{/my/plus/cancel}" method="post" class="mt-6 flex gap-2">
+                <a th:href="@{/my/plus}" class="btn-outline flex-1">돌아가기</a>
+                <button class="btn-primary flex-1 bg-gray-900 hover:bg-gray-800">해지 완료하기</button>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

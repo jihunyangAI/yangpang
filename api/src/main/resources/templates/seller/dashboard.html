@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'dashboard')}">
+<head><title>셀러센터 - YangPang</title></head>
+<body>
+<main>
+    <h1 class="mb-4 text-xl font-bold" th:text="${seller.name} + ' 셀러센터'">셀러센터</h1>
+
+    <!-- 판매 정지 안내 (M4 ⑥) -->
+    <div th:if="${seller.suspended}" class="mb-4 rounded-lg bg-rose-600 p-4 text-white">
+        <p class="font-bold">판매 정지 중이에요</p>
+        <p class="mt-1 text-sm opacity-90">판매 중이던 상품이 모두 판매중지됐고, 상품·가격·광고를 바꿀 수 없어요. 이미 받은 주문의 발주·출고·반품 처리는 계속해 주세요.
+            사유는 아래 제재 이력에서 확인하고, 해제는 양팡 운영자에게 문의해 주세요 (연구용 모의).</p>
+    </div>
+
+    <!-- 판매자 점수 (M4 ⑥) -->
+    <section th:if="${score != null}" class="mb-4 grid gap-3 rounded-lg bg-white p-4 md:grid-cols-[180px_1fr]">
+        <div class="text-center md:border-r md:border-gray-100">
+            <p class="text-xs text-gray-500">판매자 점수</p>
+            <p class="text-4xl font-black" th:classappend="${score.score >= 85} ? 'text-emerald-600' : (${score.score >= 60} ? 'text-indigo-700' : 'text-rose-600')"
+               th:text="${#numbers.formatDecimal(score.score, 1, 1)}">90.0</p>
+            <p class="text-xs font-bold" th:text="${score.grade()}">우수</p>
+            <p class="mt-1 text-[11px] text-gray-400">매일 다시 계산 · 아이템 위너 점수의 15%</p>
+        </div>
+        <dl class="grid gap-2 text-xs sm:grid-cols-3">
+            <div class="rounded bg-gray-50 p-3"><dt class="text-gray-500">리뷰 평점 (40점)</dt>
+                <dd class="mt-0.5 text-lg font-bold" th:text="${#numbers.formatDecimal(score.ratingPart(), 1, 1)}">0</dd>
+                <dd class="text-gray-400" th:text="${score.ratingAvg == null} ? '최근 90일 리뷰 없음' : '최근 90일 평균 ' + ${score.ratingAvg} + '점 · ' + ${score.reviewCount} + '개'">평점</dd></div>
+            <div class="rounded bg-gray-50 p-3"><dt class="text-gray-500">판매자 귀책 반품·교환 (35점)</dt>
+                <dd class="mt-0.5 text-lg font-bold" th:text="${#numbers.formatDecimal(score.claimPart(), 1, 1)}">0</dd>
+                <dd class="text-gray-400" th:text="'최근 30일 ' + ${score.faultClaims} + '건 / 배송완료 ' + ${score.delivered} + '개 (10% 이상이면 0점)'">반품</dd></div>
+            <div class="rounded bg-gray-50 p-3"><dt class="text-gray-500">문의 48시간 답변 (25점)</dt>
+                <dd class="mt-0.5 text-lg font-bold" th:text="${#numbers.formatDecimal(score.inquiryPart(), 1, 1)}">0</dd>
+                <dd class="text-gray-400" th:text="${score.inquiries == 0} ? '최근 30일 위너 상품 문의 없음 (만점)' : '최근 30일 ' + ${score.answered48h} + ' / ' + ${score.inquiries} + '건'">문의</dd></div>
+        </dl>
+    </section>
+    <section th:if="${!#lists.isEmpty(sanctions)}" class="mb-4 rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold">제재 이력</h2>
+        <ul class="divide-y divide-gray-100 text-xs">
+            <li th:each="x : ${sanctions}" class="flex gap-3 px-4 py-2">
+                <span class="badge shrink-0" th:classappend="${x.type.name() == 'LIFT'} ? 'bg-emerald-50 text-emerald-700' : (${x.type.name() == 'SUSPEND'} ? 'bg-rose-600 text-white' : 'bg-yellow-100 text-yellow-800')"
+                      th:text="${x.type.label()}">경고</span>
+                <span class="min-w-0 flex-1" th:text="${x.reason}">사유</span>
+                <span class="shrink-0 text-gray-400" th:text="${@fmt.date(x.createdAt)} + (${x.actor == 'SYSTEM'} ? ' · 자동' : ' · 운영자')">날짜</span>
+            </li>
+        </ul>
+    </section>
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+        <a th:href="@{/seller/orders(status='PAID')}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">발주 확인 대기</p><p class="mt-1 text-2xl font-black text-sale" th:text="${stats.toConfirm}">0</p></a>
+        <a th:href="@{/seller/orders(status='PREPARING')}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">송장 등록 대기</p><p class="mt-1 text-2xl font-black" th:text="${stats.toShip}">0</p></a>
+        <a th:href="@{/seller/claims}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">반품·교환 검수 대기</p><p class="mt-1 text-2xl font-black" th:classappend="${stats.claimsWaiting > 0} ? 'text-sale'" th:text="${stats.claimsWaiting}">0</p></a>
+        <a th:href="@{/seller/inquiries}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">답변 대기 문의</p><p class="mt-1 text-2xl font-black" th:classappend="${stats.unanswered > 0} ? 'text-sale'" th:text="${stats.unanswered}">0</p></a>
+        <div class="rounded-lg bg-white p-4">
+            <p class="text-xs text-gray-500">오늘 주문 금액</p><p class="mt-1 text-2xl font-black" th:text="${#numbers.formatInteger(stats.salesToday, 1, 'COMMA')} + '원'">0</p></div>
+        <a th:href="@{/seller/offers}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">판매 오퍼</p><p class="mt-1 text-2xl font-black" th:text="${stats.offers}">0</p></a>
+        <a th:href="@{/seller/offers(losing=true)}" class="rounded-lg bg-white p-4 hover:ring-2 hover:ring-indigo-300">
+            <p class="text-xs text-gray-500">아이템 위너</p>
+            <p class="mt-1 text-2xl font-black text-indigo-700"><span th:text="${stats.winning}">0</span><span class="text-sm font-normal text-gray-400" th:text="' / ' + ${stats.offers}"></span></p></a>
+    </div>
+
+    <section class="mt-6 rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold">위너가 아닌 상품 <span class="font-normal text-gray-400">(구매자에게 내 오퍼가 기본으로 보이지 않아요)</span></h2>
+        <p th:if="${#lists.isEmpty(losing)}" class="px-4 py-6 text-center text-gray-400">모든 오퍼가 위너예요 👏</p>
+        <ul class="divide-y divide-gray-100">
+            <li th:each="o : ${losing}" class="flex items-center justify-between gap-3 px-4 py-2">
+                <span class="min-w-0"><a th:href="@{/products/{id}(id=${o.productId})}" class="truncate font-medium hover:underline" th:text="${o.productName}"></a>
+                    <span class="text-xs text-gray-400" th:if="${o.optionText != null}" th:text="${o.optionText}"></span></span>
+                <span class="shrink-0 text-xs">내 가격 <b th:text="${#numbers.formatInteger(o.salePrice, 1, 'COMMA')}"></b>
+                    · 최저 <b class="text-sale" th:text="${o.lowestOther == null} ? '-' : ${#numbers.formatInteger(o.lowestOther, 1, 'COMMA')}"></b></span>
+            </li>
+        </ul>
+    </section>
+    <section class="mt-6 rounded-lg bg-white p-4 text-xs text-gray-500">
+        <p class="font-bold text-gray-700">아이템 위너는 어떻게 정해지나요? (연구용 공개 기준)</p>
+        <p class="mt-1">같은 옵션을 파는 판매자 중 점수가 가장 높은 오퍼 하나가 상품 페이지에 기본으로 보입니다.
+            점수 = 가격 경쟁력 60% + 배송(양팡 물류 100 / 판매자배송 40) 25% + 판매자 점수 15%. 품절이면 위너가 될 수 없어요.
+            상품 이름·사진·리뷰는 같은 상품을 파는 판매자 모두가 함께 씁니다.</p>
+    </section>
+</main>
+</body>
+</html>

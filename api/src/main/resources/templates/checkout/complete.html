@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>주문 완료 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 py-10">
+    <div class="mx-auto w-full max-w-xl px-4 text-sm">
+        <div class="rounded-3xl bg-white p-6 text-center">
+            <th:block th:if="${order.status.name() == 'PENDING_PAYMENT'}">
+                <p class="text-4xl">🏦</p>
+                <h1 class="mt-3 text-xl font-bold">입금을 기다리고 있어요</h1>
+                <p class="mt-2 text-gray-500" th:if="${payment != null and payment.virtualAccount != null}">
+                    <b class="text-gray-900" th:text="${payment.virtualAccount}">가상계좌</b><br>
+                    입금 기한: <span th:text="${@fmt.dateTime(payment.depositDeadline)}">기한</span>
+                </p>
+            </th:block>
+            <th:block th:unless="${order.status.name() == 'PENDING_PAYMENT'}">
+                <p class="text-4xl">🎉</p>
+                <h1 class="mt-3 text-xl font-bold">주문이 완료되었어요</h1>
+                <p th:unless="${order.giftWaiting}" class="mt-2 font-semibold text-arrival"
+                   th:text="${@fmt.day(order.items[0].promisedDate)} + ' 도착 예정'">도착 예정</p>
+                <p th:if="${order.giftWaiting}" class="mt-2 font-semibold text-rose-700"
+                   th:text="'🎁 ' + ${order.recipient} + '님께 선물 링크를 보냈어요 (모의 문자)'">선물</p>
+            </th:block>
+
+            <dl class="mt-6 space-y-2 rounded-md bg-gray-50 p-4 text-left">
+                <div class="flex justify-between"><dt class="text-gray-500">주문번호</dt><dd class="font-mono" th:text="${order.orderNo}">번호</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">받는 분</dt><dd th:text="${order.recipient}">받는 분</dd></div>
+                <div class="flex justify-between gap-4"><dt class="shrink-0 text-gray-500">배송지</dt>
+                    <dd class="text-right" th:text="${order.address1} + ' ' + ${order.address2 ?: ''}">주소</dd></div>
+                <div th:if="${gift != null}" class="border-t border-gray-200 pt-2">
+                    <p class="text-xs text-gray-500">받는 분이 이 링크에서 배송지를 입력하면 출고돼요. 5일 안에 입력하지 않으면 자동 취소·환불돼요.</p>
+                    <div class="mt-2 flex gap-2" th:with="giftUrl=${base} + '/gift/' + ${gift.token}">
+                        <input readonly th:value="${giftUrl}" class="input h-9 min-w-0 flex-1 bg-white font-mono text-xs" aria-label="선물 링크">
+                        <button type="button" class="btn-outline h-9 shrink-0 bg-white px-3 text-xs" th:attr="data-copy-text=${giftUrl}">링크 복사</button>
+                    </div>
+                </div>
+                <div class="flex justify-between"><dt class="text-gray-500">결제금액</dt>
+                    <dd class="font-bold" th:text="${#numbers.formatInteger(order.paidAmount, 1, 'COMMA')} + '원'">0원</dd></div>
+            </dl>
+
+            <ul class="mt-4 divide-y divide-gray-100 text-left">
+                <li th:each="i : ${order.items}" class="flex items-center gap-3 py-2">
+                    <img th:src="${i.imageUrl}" alt="" class="h-12 w-12 rounded object-cover">
+                    <span class="line-clamp-1 flex-1" th:text="${i.productName}">상품</span>
+                    <span class="text-gray-500" th:text="${i.quantity} + '개'">1개</span>
+                </li>
+            </ul>
+
+            <div class="mt-6 flex gap-2">
+                <a th:href="@{/my/orders/{no}(no=${order.orderNo})}" class="btn-outline h-11 flex-1">주문 상세 보기</a>
+                <a th:href="@{/}" class="btn-primary h-11 flex-1">쇼핑 계속하기</a>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

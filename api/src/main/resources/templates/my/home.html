@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>마이양팡 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('home')}"></nav>
+        <section class="min-w-0 flex-1 space-y-6">
+            <div class="rounded-lg bg-brand-50 p-5">
+                <p class="text-lg"><b th:text="${me.name}">회원</b>님, 안녕하세요</p>
+                <p class="mt-1 text-sm text-gray-600">
+                    <span th:text="${me.email}">email</span> ·
+                    <span th:text="${me.isPlus()} ? '양팡플러스 회원' : '일반 회원'">일반 회원</span>
+                </p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(reorders)}">
+                <h2 class="mb-1 font-bold">다시 살 때가 됐어요</h2>
+                <p class="mb-2 text-xs text-gray-500">같은 상품을 여러 번 샀으면 내 구매 간격으로, 아니면 분류별 소모 주기로 계산했어요</p>
+                <ul class="space-y-2">
+                    <li th:each="r : ${reorders}" class="flex items-center gap-3 rounded-2xl bg-white p-3">
+                        <a th:href="@{/products/{id}(id=${r.card.productId})}" class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                            <img th:src="${r.card.imageUrl}" alt="" class="h-full w-full object-cover"></a>
+                        <div class="min-w-0 flex-1">
+                            <a th:href="@{/products/{id}(id=${r.card.productId})}" class="line-clamp-1 text-sm hover:underline" th:text="${r.card.name}">상품</a>
+                            <p class="text-xs" th:classappend="${r.overdue} ? 'text-brand-700' : 'text-sea-700'" th:text="${r.note}">주기</p>
+                            <p class="text-xs text-gray-500" th:text="${#numbers.formatInteger(r.card.salePrice, 1, 'COMMA')} + '원'"></p>
+                        </div>
+                        <button type="button" class="btn-outline shrink-0 py-1.5" th:disabled="${r.card.soldOut}"
+                                th:attr="hx-post=@{/cart/items},hx-vals=|{&quot;vendorItemId&quot;: ${r.lastVendorItemId}, &quot;quantity&quot;: 1}|"
+                                hx-target="#toast" th:text="${r.card.soldOut} ? '품절' : '다시 담기'">다시 담기</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h2 class="mb-2 font-bold">최근 3개월 주문</h2>
+                <div class="grid grid-cols-3 divide-x divide-gray-200 rounded-lg border border-gray-200 text-center">
+                    <a th:href="@{/my/orders(status='ONGOING')}" class="py-4 hover:bg-gray-50">
+                        <p class="text-2xl font-extrabold text-arrival" th:text="${ongoing}">0</p><p class="text-xs text-gray-500">진행중</p></a>
+                    <a th:href="@{/my/orders(status='DONE')}" class="py-4 hover:bg-gray-50">
+                        <p class="text-2xl font-extrabold" th:text="${done}">0</p><p class="text-xs text-gray-500">배송완료</p></a>
+                    <a th:href="@{/my/orders(status='CANCELED')}" class="py-4 hover:bg-gray-50">
+                        <p class="text-2xl font-extrabold text-gray-400" th:text="${canceled}">0</p><p class="text-xs text-gray-500">취소·반품</p></a>
+                </div>
+            </div>
+
+            <div>
+                <div class="mb-2 flex items-center justify-between">
+                    <h2 class="font-bold">최근 주문</h2>
+                    <a th:href="@{/my/orders}" class="text-sm text-gray-500 hover:underline">전체보기</a>
+                </div>
+                <div class="space-y-3">
+                    <th:block th:each="o : ${recent}"><div th:replace="~{my/nav :: orderCard(${o})}"></div></th:block>
+                    <p th:if="${#lists.isEmpty(recent)}" class="rounded-lg bg-gray-50 p-8 text-center text-sm text-gray-500">최근 주문이 없어요</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>정기배송 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('subscriptions')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <h1 class="text-xl font-bold">정기배송</h1>
+            <p class="mb-4 mt-1 text-xs text-gray-500" th:text="'상품 금액 ' + ${discountPercent} + '% 할인 · 배송 예정일 이틀 전에 자동으로 주문하고 등록한 수단으로 결제해요 (모의 결제, 실제 청구 없음)'">안내</p>
+
+            <div th:if="${#lists.isEmpty(rows)}" class="rounded-lg border border-gray-200 px-4 py-12 text-center text-gray-500">
+                <p>정기배송 중인 상품이 없어요.</p>
+                <p class="mt-1 text-xs">식품·생활용품·뷰티·유아동·반려동물·건강식품 상품 상세에서 "정기배송"을 고를 수 있어요.</p>
+            </div>
+
+            <ul class="space-y-4">
+                <li th:each="r : ${rows}" th:with="s=${r.sub}" class="rounded-lg border bg-white p-4"
+                    th:classappend="${s.active()} ? 'border-gray-200' : 'border-gray-100 opacity-60'">
+                    <div class="flex gap-3">
+                        <a th:href="@{/products/{id}(id=${s.productId})}" class="h-16 w-16 shrink-0 overflow-hidden rounded bg-gray-100">
+                            <img th:src="${r.imageUrl}" alt="" class="h-full w-full object-cover"></a>
+                        <div class="min-w-0 flex-1">
+                            <p>
+                                <span class="badge" th:classappend="${s.active()} ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'"
+                                      th:text="${s.active()} ? ${s.cycleWeeks} + '주마다' : '해지됨'">2주마다</span>
+                                <a th:href="@{/products/{id}(id=${s.productId})}" class="ml-1 font-semibold hover:underline" th:text="${r.productName}">상품</a>
+                            </p>
+                            <p class="mt-0.5 text-xs text-gray-500">
+                                <span th:if="${r.optionText != null}" th:text="${r.optionText} + ' · '"></span>
+                                <span th:text="${s.quantity} + '개 · 회차마다 ' + ${#numbers.formatInteger(r.roundPrice(), 1, 'COMMA')} + '원 (할인 반영, 배송비 별도)'">1개</span>
+                            </p>
+                            <p th:if="${s.active()}" class="mt-1 font-semibold text-arrival"
+                               th:text="'다음 배송 ' + ${est.dayText(s.nextDeliveryDate)} + ' 예정 · ' + ${est.dayText(s.nextOrderDate())} + ' 자동 주문'">다음 배송</p>
+                            <p th:unless="${s.active()}" class="mt-1 text-xs text-gray-500" th:text="${@fmt.date(s.canceledAt)} + ' 해지'">해지</p>
+                            <p th:if="${s.active() and r.soldOut}" class="mt-1 text-xs font-bold text-rose-600">지금 품절이에요. 주문일까지 재입고되지 않으면 그 회차는 건너뛰어요</p>
+                            <p th:if="${s.lastNote != null}" class="mt-1 text-xs text-rose-600" th:text="${s.lastNote}">메모</p>
+                            <p class="mt-1 text-xs text-gray-400" th:text="'지금까지 ' + ${s.rounds} + '회 주문 · 건너뜀 ' + ${s.skipped} + '회 · ' + ${r.addressText}">기록</p>
+                        </div>
+                    </div>
+
+                    <!-- 관리 (MY-09) -->
+                    <div th:if="${s.active()}" class="mt-3 grid gap-2 rounded-md bg-gray-50 p-3 text-xs md:grid-cols-2">
+                        <form th:action="@{/my/subscriptions/{id}/cycle(id=${s.id})}" method="post" class="flex items-center gap-2">
+                            <span class="w-14 shrink-0 text-gray-500">주기</span>
+                            <select name="cycle" class="input h-8 py-0 text-xs" aria-label="배송 주기">
+                                <option th:each="w : ${ {1, 2, 4} }" th:value="${w}" th:text="${w} + '주마다'" th:selected="${w == s.cycleWeeks}">2주마다</option>
+                            </select>
+                            <button class="shrink-0 text-brand-700 hover:underline">변경</button>
+                        </form>
+                        <form th:action="@{/my/subscriptions/{id}/quantity(id=${s.id})}" method="post" class="flex items-center gap-2">
+                            <span class="w-14 shrink-0 text-gray-500">수량</span>
+                            <input type="number" name="quantity" min="1" max="10" th:value="${s.quantity}" class="input h-8 py-0 text-xs" aria-label="수량">
+                            <button class="shrink-0 text-brand-700 hover:underline">변경</button>
+                        </form>
+                        <form th:action="@{/my/subscriptions/{id}/address(id=${s.id})}" method="post" class="flex items-center gap-2">
+                            <span class="w-14 shrink-0 text-gray-500">배송지</span>
+                            <select name="addressId" class="input h-8 min-w-0 py-0 text-xs" aria-label="배송지">
+                                <option th:each="a : ${addresses}" th:value="${a.id}" th:text="${a.recipient} + ' · ' + ${a.address1}"
+                                        th:selected="${a.id == s.addressId}">주소</option>
+                            </select>
+                            <button class="shrink-0 text-brand-700 hover:underline">변경</button>
+                        </form>
+                        <form th:action="@{/my/subscriptions/{id}/method(id=${s.id})}" method="post" class="flex items-center gap-2">
+                            <span class="w-14 shrink-0 text-gray-500">결제</span>
+                            <select name="method" class="input h-8 py-0 text-xs" aria-label="결제수단">
+                                <option th:each="m : ${methods}" th:value="${m.name()}" th:text="${m.label()}" th:selected="${m == s.method}">양페이</option>
+                            </select>
+                            <button class="shrink-0 text-brand-700 hover:underline">변경</button>
+                        </form>
+                        <div class="flex gap-2 md:col-span-2">
+                            <form th:action="@{/my/subscriptions/{id}/skip(id=${s.id})}" method="post">
+                                <button class="btn-outline h-8 bg-white px-3 text-xs">이번 회차 건너뛰기</button></form>
+                            <form th:action="@{/my/subscriptions/{id}/cancel(id=${s.id})}" method="post">
+                                <button class="btn-outline h-8 bg-white px-3 text-xs text-rose-600">해지</button></form>
+                        </div>
+                    </div>
+
+                    <!-- 최근 회차 주문 -->
+                    <details th:if="${!#lists.isEmpty(r.orders)}" class="mt-3 text-xs">
+                        <summary class="cursor-pointer text-gray-500" th:text="'최근 회차 주문 ' + ${#lists.size(r.orders)} + '건'">최근 주문</summary>
+                        <ul class="mt-2 divide-y divide-gray-100">
+                            <li th:each="o : ${r.orders}" class="flex items-center justify-between py-1.5">
+                                <a th:href="@{/my/orders/{no}(no=${o.orderNo})}" class="hover:underline">
+                                    <span th:text="${@fmt.date(o.orderedAt)}">날짜</span> · <span class="font-mono" th:text="${o.orderNo}">번호</span></a>
+                                <span><b th:text="${o.status.label()}">상태</b> · <span th:text="${#numbers.formatInteger(o.paidAmount, 1, 'COMMA')} + '원'">0원</span></span>
+                            </li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+</body>
+</html>

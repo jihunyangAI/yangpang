@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>양팡플러스 관리 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('plus')}"></nav>
+        <section class="min-w-0 max-w-2xl flex-1 space-y-4 text-sm">
+            <h1 class="text-xl font-bold">양팡플러스</h1>
+
+            <div th:if="${membership == null or !membership.benefitActive}" class="rounded-lg bg-plus/10 p-6 text-center">
+                <p class="text-lg font-bold" th:text="${membership == null} ? '아직 양팡플러스 회원이 아니에요' : '멤버십이 해지되었어요'"></p>
+                <a th:href="@{/plus}" class="btn mt-4 bg-plus text-white">혜택 보러 가기</a>
+            </div>
+
+            <th:block th:if="${membership != null and membership.benefitActive}">
+                <div class="rounded-lg bg-gradient-to-r from-plus to-indigo-500 p-6 text-white">
+                    <p class="text-sm opacity-90" th:text="${membership.status.label()}">이용 중</p>
+                    <p class="mt-1 text-2xl font-black">이번 기간 <span th:text="${#numbers.formatInteger(savings.total(), 1, 'COMMA')}">0</span>원 아꼈어요</p>
+                    <p class="mt-1 text-xs opacity-90" th:text="'회원가 ' + ${#numbers.formatInteger(savings.priceSaving, 1, 'COMMA')} + '원 + 무료배송 ' + ${#numbers.formatInteger(savings.shippingSaved, 1, 'COMMA')} + '원'"></p>
+                </div>
+                <dl class="space-y-2 rounded-lg border border-gray-200 p-4">
+                    <div class="flex justify-between"><dt class="text-gray-500">가입일</dt><dd th:text="${@fmt.date(membership.startedAt)}"></dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">이번 기간</dt>
+                        <dd th:text="${@fmt.date(membership.currentPeriodStart)} + ' ~ ' + ${@fmt.date(membership.currentPeriodEnd)}"></dd></div>
+                    <div class="flex justify-between" th:if="${membership.status.name() == 'ACTIVE'}"><dt class="text-gray-500">다음 결제일 (모의)</dt>
+                        <dd th:text="${@fmt.date(membership.currentPeriodEnd)} + ' · ' + ${#numbers.formatInteger(membership.monthlyFee, 1, 'COMMA')} + '원'"></dd></div>
+                    <div class="flex justify-between" th:if="${membership.status.name() == 'CANCELED'}"><dt class="text-gray-500">혜택 종료일</dt>
+                        <dd class="font-semibold text-sale" th:text="${@fmt.date(membership.currentPeriodEnd)}"></dd></div>
+                </dl>
+                <div class="flex gap-2">
+                    <a th:if="${membership.status.name() == 'ACTIVE'}" th:href="@{/my/plus/cancel}" class="btn-outline">해지하기</a>
+                    <form th:if="${membership.status.name() == 'CANCELED'}" th:action="@{/my/plus/undo-cancel}" method="post">
+                        <button class="btn bg-plus text-white">해지 신청 취소</button></form>
+                </div>
+            </th:block>
+
+            <div th:if="${billings != null and !#lists.isEmpty(billings)}" class="rounded-lg border border-gray-200">
+                <p class="border-b border-gray-100 px-4 py-3 font-bold">청구 내역 <span class="font-normal text-gray-400">(모의 · 실제 결제 없음)</span></p>
+                <ul class="divide-y divide-gray-100">
+                    <li th:each="b : ${billings}" class="flex justify-between px-4 py-2">
+                        <span><span th:text="${@fmt.date(b.billedAt)}"></span> · <span th:text="${b.kindLabel()}"></span></span>
+                        <b th:text="${#numbers.formatInteger(b.amount, 1, 'COMMA')} + '원'"></b>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'synonyms')}">
+<head><title>검색 동의어 - YangPang 관리자</title></head>
+<body>
+<main class="max-w-3xl">
+    <h1 class="mb-1 text-xl font-bold">검색 동의어</h1>
+    <p class="mb-4 text-xs text-gray-500">한 줄이 같은 뜻 단어 묶음이에요. 묶음 안의 어느 단어로 찾아도 나머지 단어가 들어간 상품이 함께 나와요.
+        (키워드 검색은 Meilisearch를 쓸 때만 적용, 꺼져 있으면 PostgreSQL 검색은 동의어 없이 동작)</p>
+    <form th:action="@{/admin/synonyms}" method="post" class="mb-5 flex gap-2 rounded-lg bg-white p-4">
+        <input name="words" required maxlength="300" class="input flex-1" placeholder="노트북, 랩탑">
+        <button class="btn-primary">추가</button>
+    </form>
+    <ul class="divide-y divide-gray-100 rounded-lg bg-white">
+        <li th:each="s : ${synonyms}" class="flex items-center justify-between gap-3 px-4 py-3">
+            <span class="flex flex-wrap gap-1">
+                <span th:each="w : ${#strings.arraySplit(s.words, ',')}" class="rounded bg-gray-100 px-2 py-0.5" th:text="${#strings.trim(w)}">단어</span>
+            </span>
+            <form th:action="@{/admin/synonyms/{id}/delete(id=${s.id})}" method="post">
+                <button class="text-xs text-gray-500 underline">지우기</button></form>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'stats')}">
+<head><title>판매 통계 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+        <div>
+            <h1 class="text-xl font-bold">판매 통계</h1>
+            <p class="text-xs text-gray-500">결제 시각 기준 · 판매금액은 단가 × 수량(쿠폰 등 양팡 부담 할인 전)</p>
+        </div>
+        <nav class="flex gap-1 text-xs">
+            <a th:each="d : ${ {7, 30, 90} }" th:href="@{/seller/stats(days=${d})}" class="rounded-full px-3 py-1.5"
+               th:classappend="${days == d} ? 'bg-indigo-700 text-white' : 'bg-white hover:bg-gray-50'" th:text="'최근 ' + ${d} + '일'">기간</a>
+        </nav>
+    </div>
+
+    <dl class="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">판매금액</dt>
+            <dd class="mt-1 text-xl font-black" th:text="${#numbers.formatInteger(totals.sales, 1, 'COMMA')} + '원'">0</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">주문 · 수량</dt>
+            <dd class="mt-1 text-xl font-black" th:text="${totals.orders} + '건 · ' + ${totals.quantity} + '개'">0</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">취소 · 반품 (상품 줄)</dt>
+            <dd class="mt-1 text-xl font-black" th:text="${totals.canceled} + ' · ' + ${totals.returned}">0</dd>
+            <dd class="text-xs text-gray-400" th:text="'판매자 귀책 반품·교환 ' + ${totals.faultClaims} + '건 / 배송완료 ' + ${totals.delivered}">귀책</dd></div>
+        <div class="rounded-lg bg-white p-4"><dt class="text-xs text-gray-500">광고비 → 광고 매출</dt>
+            <dd class="mt-1 text-xl font-black" th:text="${#numbers.formatInteger(totals.adCost, 1, 'COMMA')} + '원'">0</dd>
+            <dd class="text-xs text-gray-400" th:text="${#numbers.formatInteger(totals.adSales, 1, 'COMMA')} + '원 · 수익률 ' + ${#numbers.formatInteger(totals.roas(), 1, 'COMMA')} + '%'">roas</dd></div>
+    </dl>
+
+    <section class="mt-5 rounded-lg bg-white p-4">
+        <h2 class="mb-3 font-bold">일별 판매금액</h2>
+        <div class="flex h-40 items-end gap-px" role="img" th:attr="aria-label='최근 ' + ${days} + '일 일별 판매금액 막대'">
+            <div th:each="d : ${daily}" class="group relative flex-1 rounded-t bg-indigo-500 hover:bg-indigo-700"
+                 th:style="'height:' + ${d.sales * 100 / maxSales} + '%; min-height:1px'"
+                 th:title="${#temporals.format(d.day, 'MM.dd')} + ' · ' + ${#numbers.formatInteger(d.sales, 1, 'COMMA')} + '원 · ' + ${d.orders} + '건'"></div>
+        </div>
+        <div class="mt-1 flex justify-between text-[10px] text-gray-400">
+            <span th:text="${#temporals.format(daily[0].day, 'MM.dd')}"></span><span th:text="${#temporals.format(daily[#lists.size(daily) - 1].day, 'MM.dd')}"></span>
+        </div>
+    </section>
+
+    <div class="mt-5 grid gap-5 lg:grid-cols-2">
+        <section class="rounded-lg bg-white">
+            <h2 class="border-b border-gray-100 px-4 py-3 font-bold">많이 팔린 상품</h2>
+            <p th:if="${#lists.isEmpty(top)}" class="px-4 py-8 text-center text-xs text-gray-400">이 기간에 팔린 상품이 없어요</p>
+            <ol class="divide-y divide-gray-100 text-xs">
+                <li th:each="t, st : ${top}" class="flex items-center justify-between gap-2 px-4 py-2">
+                    <span class="min-w-0 truncate"><b class="mr-1 text-indigo-700" th:text="${st.count}">1</b>
+                        <a th:href="@{/products/{id}(id=${t.productId})}" class="hover:underline" th:text="${t.name}">상품</a></span>
+                    <span class="shrink-0" th:text="${t.quantity} + '개 · ' + ${#numbers.formatInteger(t.sales, 1, 'COMMA')} + '원'">0</span>
+                </li>
+            </ol>
+        </section>
+        <section class="rounded-lg bg-white">
+            <h2 class="border-b border-gray-100 px-4 py-3 font-bold">일별 표</h2>
+            <div class="max-h-80 overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="sticky top-0 bg-gray-50 text-gray-500"><tr><th class="px-3 py-1.5">날짜</th><th class="px-3 py-1.5 text-right">주문</th>
+                        <th class="px-3 py-1.5 text-right">수량</th><th class="px-3 py-1.5 text-right">판매금액</th><th class="px-3 py-1.5 text-right">취소·반품</th></tr></thead>
+                    <tbody class="divide-y divide-gray-100">
+                    <tr th:each="d : ${dailyDesc}">
+                        <td class="px-3 py-1.5" th:text="${#temporals.format(d.day, 'MM.dd (E)')}">날짜</td>
+                        <td class="px-3 py-1.5 text-right" th:text="${d.orders}">0</td>
+                        <td class="px-3 py-1.5 text-right" th:text="${d.quantity}">0</td>
+                        <td class="px-3 py-1.5 text-right" th:text="${#numbers.formatInteger(d.sales, 1, 'COMMA')}">0</td>
+                        <td class="px-3 py-1.5 text-right" th:text="${d.canceled} + ' · ' + ${d.returned}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

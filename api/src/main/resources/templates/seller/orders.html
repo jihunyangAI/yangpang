@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'orders')}">
+<head><title>주문 처리 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <h1 class="mb-1 text-xl font-bold">주문 처리</h1>
+    <p class="mb-4 text-xs text-gray-500">결제완료 → <b>발주 확인</b> → 상품준비중 → <b>송장 등록</b> → 출고완료. 정해진 시간 안에 처리하지 않으면 시뮬레이터(가상 판매자)가 대신 처리합니다.</p>
+    <nav class="mb-4 flex flex-wrap gap-1">
+        <a th:each="t : ${ { {'PAID','발주 확인 대기'}, {'PREPARING','송장 등록 대기'}, {'SHIPPED','출고완료'}, {'ALL','전체'} } }"
+           th:href="@{/seller/orders(status=${t[0]})}" th:text="${t[1]}" class="rounded-full px-3 py-1.5"
+           th:classappend="${status == t[0]} ? 'bg-indigo-700 text-white' : 'bg-white hover:bg-gray-50'">탭</a>
+    </nav>
+
+    <form th:action="@{/seller/orders/confirm}" method="post" id="confirm-form"></form>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[900px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="w-8 px-3 py-2" th:if="${status == 'PAID'}"></th><th class="px-3 py-2">주문</th><th class="px-3 py-2">상품</th>
+                <th class="px-3 py-2 text-right">금액</th><th class="px-3 py-2">받는 분</th><th class="px-3 py-2">상태 / 처리</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="o : ${orders}">
+                <td class="px-3 py-2" th:if="${status == 'PAID'}">
+                    <input type="checkbox" name="ids" th:value="${o.id}" form="confirm-form" th:disabled="${o.status != 'PAID'}" checked></td>
+                <td class="px-3 py-2"><span class="font-mono text-xs" th:text="${o.orderNo}"></span>
+                    <span class="block text-xs text-gray-400" th:text="${@fmt.dateTime(o.orderedAt)}"></span></td>
+                <td class="max-w-xs px-3 py-2"><span class="line-clamp-1" th:text="${o.productName}"></span>
+                    <span class="text-xs text-gray-400" th:text="${(o.optionText ?: '') + ' x' + o.quantity}"></span></td>
+                <td class="px-3 py-2 text-right" th:text="${#numbers.formatInteger(o.amount, 1, 'COMMA')} + '원'"></td>
+                <td class="px-3 py-2 text-xs"><span th:text="${o.receiver}"></span><span class="block text-gray-400" th:text="${o.address}"></span></td>
+                <td class="px-3 py-2">
+                    <span class="badge bg-gray-100 text-gray-600" th:text="${o.statusLabel}">상태</span>
+                    <span th:if="${o.trackingNo != null}" class="block text-xs text-gray-500" th:text="${o.carrier} + ' ' + ${o.trackingNo}"></span>
+                    <form th:if="${o.status == 'PREPARING'}" th:action="@{/seller/orders/{id}/ship(id=${o.id})}" method="post" class="mt-1 flex gap-1">
+                        <select name="carrier" class="input h-8 w-32 py-0 text-sm"><option th:each="c : ${carriers}" th:value="${c}" th:text="${c}"></option></select>
+                        <input name="trackingNo" required placeholder="송장번호 (숫자 10~14자리)" class="input h-8 w-44" inputmode="numeric">
+                        <button class="btn-outline h-8 px-3">등록</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(orders)}" class="p-8 text-center text-gray-400">해당하는 주문이 없어요</p>
+    </div>
+    <button th:if="${status == 'PAID' and !#lists.isEmpty(orders)}" form="confirm-form" class="btn-primary mt-4 bg-indigo-700 hover:bg-indigo-800">선택한 주문 발주 확인</button>
+</main>
+</body>
+</html>

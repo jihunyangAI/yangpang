@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>찜·최근 본·자주 산 상품 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('wishlist')}"></nav>
+        <section class="min-w-0 flex-1 text-sm">
+            <div class="mb-4 flex border-b border-gray-200">
+                <a th:each="t : ${ { {'wishlist','/my/wishlist','찜한 상품'}, {'recent','/my/recent','최근 본 상품'}, {'frequent','/my/frequent','자주 산 상품'} } }"
+                   th:href="${t[1]}" th:text="${t[2]}" class="px-4 py-2"
+                   th:classappend="${mode == t[0]} ? 'border-b-2 border-gray-900 font-bold' : 'text-gray-500'">탭</a>
+            </div>
+
+            <!-- 찜 폴더 -->
+            <div th:if="${mode == 'wishlist'}" class="mb-4">
+                <nav class="no-scrollbar flex items-center gap-2 overflow-x-auto">
+                    <a th:href="@{/my/wishlist}" class="shrink-0 rounded-full px-3 py-1.5"
+                       th:classappend="${folder == null} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">전체</a>
+                    <a th:href="@{/my/wishlist(folder=0)}" class="shrink-0 rounded-full px-3 py-1.5"
+                       th:classappend="${folder == 0} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'">폴더 없음</a>
+                    <a th:each="f : ${folders}" th:href="@{/my/wishlist(folder=${f.id})}" class="shrink-0 rounded-full px-3 py-1.5"
+                       th:classappend="${folder == f.id} ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'"
+                       th:text="${f.name} + ' ' + ${f.count}">폴더</a>
+                    <details class="relative shrink-0">
+                        <summary class="cursor-pointer list-none rounded-full border border-dashed border-gray-300 px-3 py-1.5 text-gray-500">+ 폴더</summary>
+                        <form th:action="@{/my/wishlist/folders}" method="post" class="absolute left-0 z-10 mt-1 flex gap-1 rounded-md border border-gray-200 bg-white p-2 shadow">
+                            <input name="name" required maxlength="30" placeholder="예: 캠핑 준비" class="input h-8 w-36">
+                            <button class="btn-primary h-8 px-3">만들기</button>
+                        </form>
+                    </details>
+                </nav>
+                <form th:if="${folder != null and folder != 0}" th:action="@{/my/wishlist/folders/{id}/delete(id=${folder})}" method="post" class="mt-2 text-right">
+                    <button class="text-xs text-gray-500 underline">이 폴더 지우기</button></form>
+            </div>
+
+            <form th:if="${mode == 'recent' and !#lists.isEmpty(cards)}" th:action="@{/my/recent/clear}" method="post" class="mb-3 text-right">
+                <button class="text-xs text-gray-500 hover:underline">전체 삭제</button></form>
+
+            <div th:if="${mode != 'frequent'}" class="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+                <div th:each="card : ${cards}">
+                    <a th:replace="~{fragments/product-card :: card(${card})}"></a>
+                    <!-- 폴더 옮기기 (찜 목록에서만) -->
+                    <select th:if="${mode == 'wishlist' and !#lists.isEmpty(folders)}" name="folderId" class="input mt-1 h-8 py-0 text-xs"
+                            th:attr="hx-post=@{/my/wishlist/{id}/folder(id=${card.productId})}" hx-trigger="change" hx-target="#toast">
+                        <option value="0">폴더 없음</option>
+                        <option th:each="f : ${folders}" th:value="${f.id}" th:text="${f.name}"
+                                th:selected="${folderOf.get(card.productId) == f.id}">폴더</option>
+                    </select>
+                </div>
+            </div>
+            <p th:if="${mode != 'frequent' and #lists.isEmpty(cards)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500"
+               th:text="${mode == 'wishlist'} ? '찜한 상품이 없어요. 상품 상세의 ♡를 눌러 보세요' : '최근 본 상품이 없어요'"></p>
+
+            <ul th:if="${mode == 'frequent'}" class="space-y-2">
+                <li th:each="f : ${items}" class="flex items-center gap-3 rounded-lg border border-gray-200 p-3">
+                    <a th:href="@{/products/{id}(id=${f.card.productId})}" class="h-16 w-16 shrink-0 overflow-hidden rounded bg-gray-100">
+                        <img th:src="${f.card.imageUrl}" alt="" class="h-full w-full object-cover"></a>
+                    <div class="min-w-0 flex-1">
+                        <a th:href="@{/products/{id}(id=${f.card.productId})}" class="line-clamp-1 hover:underline" th:text="${f.card.name}">상품</a>
+                        <p class="text-xs text-gray-500" th:text="${#numbers.formatInteger(f.card.salePrice, 1, 'COMMA')} + '원 · ' + ${f.times} + '번 구매'"></p>
+                    </div>
+                    <button type="button" class="btn-outline shrink-0 py-1.5" th:disabled="${f.card.soldOut}"
+                            th:attr="hx-post=@{/cart/items},hx-vals=|{&quot;vendorItemId&quot;: ${f.lastVendorItemId}, &quot;quantity&quot;: 1}|"
+                            hx-target="#toast" th:text="${f.card.soldOut} ? '품절' : '다시 담기'">다시 담기</button>
+                </li>
+            </ul>
+            <p th:if="${mode == 'frequent' and #lists.isEmpty(items)}" class="rounded-lg bg-gray-50 p-10 text-center text-gray-500">아직 구매한 상품이 없어요</p>
+        </section>
+    </div>
+</main>
+
+<!-- 찜 하트 버튼 (상품 상세) -->
+<button th:fragment="heart" type="button" th:id="'wish-' + ${productId}"
+        th:attr="hx-post=@{/products/{id}/wish(id=${productId})},aria-pressed=${wished}" hx-swap="outerHTML"
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-white text-xl"
+        th:classappend="${wished} ? 'border-brand-300 text-brand-600' : 'border-gray-200 text-gray-500 hover:text-brand-600'"
+        th:title="${wished} ? '찜 해제' : '찜하기'" th:text="${wished} ? '♥' : '♡'">♡</button>
+</body>
+</html>

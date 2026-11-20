@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'ads')}">
+<head><title>광고 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <h1 class="mb-1 text-xl font-bold">검색 광고</h1>
+    <p class="mb-4 text-xs text-gray-500">검색어가 키워드와 <b>똑같을 때</b> 검색 결과 첫 페이지의 1·2번째 칸과 이후 10개마다 한 칸에 AD로 보입니다.
+        순위는 <b>입찰가 × 품질(양팡 랭킹 점수)</b>, 클릭당 비용은 바로 아래 광고를 이기는 데 필요한 금액 + 10원(입찰가 이하, 최소 100원)입니다.
+        하루 예산을 다 쓰면 그날은 보이지 않습니다. 연구용 모의 과금이라 실제로 청구되지 않아요.</p>
+
+    <details class="mb-5 rounded-lg bg-white p-4" th:open="${#lists.isEmpty(campaigns)}">
+        <summary class="cursor-pointer font-bold">새 광고 만들기</summary>
+        <form th:action="@{/seller/ads}" method="post" class="mt-3 grid gap-3 md:grid-cols-2">
+            <label class="block md:col-span-2"><span class="text-xs text-gray-500">광고할 상품 (내가 파는 상품)</span>
+                <select name="productId" required class="input mt-1 w-full">
+                    <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}">상품</option>
+                </select></label>
+            <label class="block"><span class="text-xs text-gray-500">하루 예산 (원, 1,000 이상)</span>
+                <input name="dailyBudget" type="number" min="1000" step="1000" value="10000" required class="input mt-1 w-full"></label>
+            <label class="block md:row-span-2"><span class="text-xs text-gray-500">키워드와 입찰가 (한 줄에 하나, "키워드 입찰가". 입찰가를 빼면 300원)</span>
+                <textarea name="keywords" rows="4" required class="input mt-1 w-full" placeholder="텐트 400&#10;캠핑 텐트 300"></textarea></label>
+            <div><button class="btn-primary h-10 px-6">광고 시작</button></div>
+        </form>
+    </details>
+
+    <nav class="mb-3 flex gap-1 text-xs">
+        <span class="self-center text-gray-500">성과 기간</span>
+        <a th:each="d : ${ {1, 7, 30} }" th:href="@{/seller/ads(days=${d})}" class="rounded-full px-3 py-1.5"
+           th:classappend="${days == d} ? 'bg-indigo-700 text-white' : 'bg-white hover:bg-gray-50'"
+           th:text="${d == 1} ? '오늘' : '최근 ' + ${d} + '일'">기간</a>
+    </nav>
+
+    <p th:if="${#lists.isEmpty(campaigns)}" class="rounded-lg bg-white px-4 py-10 text-center text-gray-400">아직 광고가 없어요</p>
+    <ul class="space-y-4">
+        <li th:each="c : ${campaigns}" class="rounded-lg bg-white p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="min-w-0"><span class="badge" th:classappend="${c.active()} ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'"
+                                         th:text="${c.active()} ? '진행 중' : '멈춤'">상태</span>
+                    <a th:href="@{/products/{id}(id=${c.productId})}" class="ml-1 font-bold hover:underline" th:text="${c.productName}">상품</a></p>
+                <form th:action="@{/seller/ads/{id}/status(id=${c.id})}" method="post">
+                    <input type="hidden" name="active" th:value="${!c.active()}">
+                    <button class="btn-outline h-8 px-3 text-xs" th:text="${c.active()} ? '멈추기' : '다시 켜기'">멈추기</button>
+                </form>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
+                <span>오늘 쓴 금액 <b th:text="${#numbers.formatInteger(c.spentToday, 1, 'COMMA')}">0</b> / <span th:text="${#numbers.formatInteger(c.dailyBudget, 1, 'COMMA')}">0</span>원</span>
+                <span th:if="${c.spentToday >= c.dailyBudget}" class="font-bold text-rose-600">오늘 예산 소진</span>
+                <form th:action="@{/seller/ads/{id}/budget(id=${c.id})}" method="post" class="flex items-center gap-1">
+                    <input name="dailyBudget" type="number" min="1000" step="1000" th:value="${c.dailyBudget}" class="input h-7 w-28 py-0 text-xs" aria-label="하루 예산">
+                    <button class="text-indigo-700 hover:underline">예산 변경</button>
+                </form>
+            </div>
+            <dl class="mt-3 grid grid-cols-3 gap-2 rounded bg-gray-50 p-3 text-center text-xs md:grid-cols-6" th:with="s=${c.stat}">
+                <div><dt class="text-gray-500">노출</dt><dd class="font-bold" th:text="${#numbers.formatInteger(s.impressions, 1, 'COMMA')}">0</dd></div>
+                <div><dt class="text-gray-500">클릭</dt><dd class="font-bold" th:text="${#numbers.formatInteger(s.clicks, 1, 'COMMA')}">0</dd></div>
+                <div><dt class="text-gray-500">클릭률</dt><dd class="font-bold" th:text="${#numbers.formatDecimal(s.ctr(), 1, 1)} + '%'">0%</dd></div>
+                <div><dt class="text-gray-500">광고비</dt><dd class="font-bold" th:text="${#numbers.formatInteger(s.cost, 1, 'COMMA')} + '원'">0</dd></div>
+                <div><dt class="text-gray-500">전환(주문)</dt><dd class="font-bold" th:text="${s.conversions}">0</dd></div>
+                <div><dt class="text-gray-500">광고 매출 / 수익률</dt><dd class="font-bold" th:text="${#numbers.formatInteger(s.sales, 1, 'COMMA')} + '원 · ' + ${#numbers.formatInteger(s.roas(), 1, 'COMMA')} + '%'">0</dd></div>
+            </dl>
+            <table class="mt-3 w-full text-left text-xs">
+                <thead class="text-gray-500"><tr><th class="py-1">키워드</th><th class="py-1">입찰가</th><th class="py-1 text-right">노출</th>
+                    <th class="py-1 text-right">클릭</th><th class="py-1 text-right">광고비</th><th class="py-1 text-right">전환</th><th></th></tr></thead>
+                <tbody class="divide-y divide-gray-100">
+                <tr th:each="k : ${c.keywords}">
+                    <td class="py-1.5 font-medium" th:text="${k.keyword}">키워드</td>
+                    <td class="py-1.5">
+                        <form th:action="@{/seller/ads/keywords/{id}/bid(id=${k.id})}" method="post" class="flex items-center gap-1">
+                            <input name="bid" type="number" min="100" max="10000" step="10" th:value="${k.bid}" class="input h-7 w-20 py-0 text-xs" aria-label="입찰가">
+                            <button class="text-indigo-700 hover:underline">변경</button>
+                        </form></td>
+                    <td class="py-1.5 text-right" th:text="${#numbers.formatInteger(k.stat.impressions, 1, 'COMMA')}"></td>
+                    <td class="py-1.5 text-right" th:text="${#numbers.formatInteger(k.stat.clicks, 1, 'COMMA')}"></td>
+                    <td class="py-1.5 text-right" th:text="${#numbers.formatInteger(k.stat.cost, 1, 'COMMA')}"></td>
+                    <td class="py-1.5 text-right" th:text="${k.stat.conversions}"></td>
+                    <td class="py-1.5 text-right">
+                        <form th:action="@{/seller/ads/keywords/{id}/delete(id=${k.id})}" method="post"><button class="text-gray-400 hover:text-rose-600" aria-label="키워드 지우기">삭제</button></form></td>
+                </tr>
+                </tbody>
+            </table>
+            <form th:action="@{/seller/ads/{id}/keywords(id=${c.id})}" method="post" class="mt-2 flex gap-2">
+                <input name="keywords" required class="input h-8 min-w-0 flex-1 text-xs" placeholder="키워드 추가 (예: 캠핑 의자 250, 접이식 의자 200)">
+                <button class="btn-outline h-8 px-3 text-xs">추가</button>
+            </form>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

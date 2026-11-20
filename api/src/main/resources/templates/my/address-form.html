@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>배송지 입력 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('addresses')}"></nav>
+        <section class="min-w-0 max-w-lg flex-1 text-sm">
+            <h1 class="mb-1 text-xl font-bold" th:text="${addressId == null} ? '배송지 추가' : '배송지 수정'">배송지</h1>
+            <p class="mb-4 text-xs text-gray-500">연구용 데모입니다. 실제 주소 대신 가짜 주소를 입력해 주세요. (예: 서울특별시 가상구 연구로 1)</p>
+
+            <form th:action="${addressId == null} ? @{/my/addresses/new} : @{/my/addresses/{id}/edit(id=${addressId})}"
+                  th:object="${form}" method="post" novalidate class="space-y-3">
+                <input type="hidden" name="continue" th:if="${continueUrl != null}" th:value="${continueUrl}">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block"><span class="mb-1 block font-semibold">받는 분</span>
+                        <input th:field="*{recipient}" class="input">
+                        <span class="text-xs text-sale" th:errors="*{recipient}"></span></label>
+                    <label class="block"><span class="mb-1 block font-semibold">배송지 이름 <span class="font-normal text-gray-400">(선택)</span></span>
+                        <input th:field="*{label}" class="input" placeholder="집, 회사"></label>
+                </div>
+                <label class="block"><span class="mb-1 block font-semibold">연락처</span>
+                    <input th:field="*{phone}" type="tel" class="input" placeholder="010-0000-0000">
+                    <span class="text-xs text-sale" th:errors="*{phone}"></span></label>
+                <label class="block"><span class="mb-1 block font-semibold">우편번호</span>
+                    <input th:field="*{zipcode}" class="input w-32" inputmode="numeric" maxlength="5" placeholder="00000">
+                    <span class="block text-xs text-sale" th:errors="*{zipcode}"></span></label>
+                <label class="block"><span class="mb-1 block font-semibold">주소</span>
+                    <input th:field="*{address1}" class="input" placeholder="시·도부터 입력 (예: 서울특별시 ...)">
+                    <span class="text-xs text-sale" th:errors="*{address1}"></span>
+                    <span class="block text-xs text-gray-400">시·도 이름으로 배송 권역(수도권/지방/도서산간)을 정합니다</span></label>
+                <label class="block"><span class="mb-1 block font-semibold">상세 주소</span>
+                    <input th:field="*{address2}" class="input" placeholder="동·호수"></label>
+
+                <div>
+                    <span class="mb-1 block font-semibold">공동현관 출입 방법</span>
+                    <div class="flex flex-wrap gap-2">
+                        <label th:each="t : ${entranceTypes}" class="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+                            <input type="radio" th:field="*{entranceType}" th:value="${t}" class="accent-brand-600">
+                            <span th:text="${t.label()}">자유출입</span>
+                        </label>
+                    </div>
+                    <input th:field="*{entranceNote}" class="input mt-2" placeholder="공동현관 비밀번호 등 (예: #1234*)">
+                </div>
+                <label class="block"><span class="mb-1 block font-semibold">배송 요청사항</span>
+                    <input th:field="*{requestNote}" class="input"></label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" th:field="*{makeDefault}" class="h-4 w-4 accent-brand-600"> 기본 배송지로 설정
+                </label>
+
+                <div class="flex gap-2 pt-2">
+                    <a th:href="${continueUrl ?: '/my/addresses'}" class="btn-outline flex-1">취소</a>
+                    <button type="submit" class="btn-primary flex-1">저장</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

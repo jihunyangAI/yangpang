@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'products')}">
+<head><title>상품 수정 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-xl font-bold" th:text="'#' + ${p.id} + ' ' + ${p.name}">상품</h1>
+        <a th:href="@{/products/{id}(id=${p.id})}" target="_blank" class="text-brand-700 hover:underline">쇼핑몰에서 보기 ↗</a>
+    </div>
+
+    <form th:action="@{/admin/products/{id}(id=${p.id})}" method="post" class="grid gap-4 rounded-lg bg-white p-6 md:grid-cols-[1fr_280px_160px_auto] md:items-end">
+        <label class="block"><span class="mb-1 block font-semibold">상품명</span>
+            <input name="name" th:value="${p.name}" required class="input"></label>
+        <label class="block"><span class="mb-1 block font-semibold">카테고리</span>
+            <select name="categoryId" class="input">
+                <option th:each="l : ${leaves}" th:value="${l.id}" th:text="${l.path}" th:selected="${l.id == p.category.id}">경로</option>
+            </select></label>
+        <label class="block"><span class="mb-1 block font-semibold">상태</span>
+            <select name="status" class="input">
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == p.status}">상태</option>
+            </select></label>
+        <button class="btn-primary">저장</button>
+    </form>
+
+    <div class="rounded-lg bg-white">
+        <p class="border-b border-gray-100 px-6 py-3 font-bold">옵션별 판매 오퍼 <span class="font-normal text-gray-500">(가격·재고를 바꾸면 목록 대표가·품절 표시가 자동으로 맞춰집니다)</span></p>
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[820px] text-left">
+                <thead class="bg-gray-50 text-xs text-gray-500">
+                <tr><th class="px-4 py-2">옵션</th><th class="px-4 py-2">판매자</th><th class="px-4 py-2">배송</th>
+                    <th class="px-4 py-2">정가</th><th class="px-4 py-2">판매가</th><th class="px-4 py-2">재고</th><th class="px-4 py-2">상태</th><th></th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                <th:block th:each="i : ${p.items}">
+                    <tr th:each="v : ${i.vendorItems}">
+                        <td class="px-4 py-2" th:text="${i.optionText() ?: '단일 상품'}">옵션</td>
+                        <td class="px-4 py-2 text-gray-600" th:text="${v.seller.name}">판매자</td>
+                        <td class="px-4 py-2 text-gray-600" th:text="${v.deliveryType.label()}">배송</td>
+                        <td colspan="5" class="px-4 py-2">
+                            <form th:action="@{/admin/products/{id}/offers/{vid}(id=${p.id}, vid=${v.id})}" method="post" class="flex items-center gap-2">
+                                <input name="listPrice" type="number" min="0" step="100" th:value="${v.listPrice}" class="input w-28 py-1.5">
+                                <input name="salePrice" type="number" min="100" step="100" th:value="${v.salePrice}" class="input w-28 py-1.5">
+                                <input name="stock" type="number" min="0" th:value="${v.stock}" class="input w-20 py-1.5"
+                                       th:classappend="${v.stock == 0} ? 'border-sale text-sale'">
+                                <select name="status" class="input w-28 py-1.5">
+                                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == v.status}">상태</option>
+                                </select>
+                                <button class="btn-outline py-1.5">저장</button>
+                            </form>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

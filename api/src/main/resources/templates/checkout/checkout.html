@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>주문/결제 - YangPang</title>
+</head>
+<body>
+<main class="flex-1 pb-36 md:pb-0">
+<div class="container-page py-4 md:py-8">
+    <h1 class="mb-4 text-xl font-bold md:text-2xl">주문/결제</h1>
+
+    <!-- 쿠폰·캐시를 바꾸면(.recalc) htmx가 GET /checkout 으로 다시 계산해 이 폼을 통째로 바꿔 끼운다 -->
+    <form id="checkout-form" th:action="@{/checkout/place}" method="post" class="md:flex md:items-start md:gap-6">
+        <input type="hidden" name="addressId" th:if="${co.selectedAddress != null}" th:value="${co.selectedAddress.id}">
+        <input type="hidden" name="manual" value="true">
+        <div th:if="${!#lists.isEmpty(co.warnings)}" class="mb-3 w-full rounded-md bg-yellow-50 p-3 text-sm text-yellow-800 md:hidden">
+            <p th:each="w : ${co.warnings}" th:text="${w}"></p></div>
+
+        <div class="min-w-0 flex-1 space-y-4 text-sm">
+
+            <!-- 구매자 -->
+            <section class="rounded-3xl bg-white p-5">
+                <h2 class="mb-3 text-base font-bold">구매자 정보</h2>
+                <dl class="grid grid-cols-[80px_1fr] gap-y-1.5">
+                    <dt class="text-gray-500">이름</dt><dd th:text="${co.buyerName}">이름</dd>
+                    <dt class="text-gray-500">이메일</dt><dd th:text="${co.buyerEmail}">이메일</dd>
+                    <dt class="text-gray-500">휴대폰</dt><dd th:text="${co.buyerPhone}">휴대폰</dd>
+                </dl>
+            </section>
+
+            <!-- 받는 사람 / 배송지 -->
+            <section class="rounded-3xl bg-white p-5">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-base font-bold">받는 사람 정보</h2>
+                    <a th:unless="${gift}" th:href="@{/my/addresses/new(continue='/checkout')}" class="text-xs text-brand-700 underline">+ 새 배송지</a>
+                </div>
+                <!-- 내가 받기 / 선물하기 -->
+                <div class="mb-4 grid grid-cols-2 gap-1 rounded-full bg-gray-100 p-1 text-center">
+                    <a th:href="@{/checkout}" class="rounded-full py-2"
+                       th:classappend="${!gift} ? 'bg-white font-bold shadow-sm' : 'text-gray-500'">내가 받기</a>
+                    <a th:href="@{/checkout(gift=true)}" class="rounded-full py-2"
+                       th:classappend="${gift} ? 'bg-white font-bold shadow-sm' : 'text-gray-500'">🎁 선물하기</a>
+                </div>
+
+                <div th:if="${gift}" class="space-y-3">
+                    <input type="hidden" name="gift" value="true">
+                    <p class="rounded-md bg-rose-50 p-3 text-xs text-rose-800">받는 분의 이름과 휴대폰 번호만 입력하세요.
+                        결제가 끝나면 받는 분께 선물 링크가 가고(모의 문자, 실제로 보내지 않아요), 받는 분이 링크에서 배송지를 입력하면 출고돼요.
+                        5일 안에 입력하지 않으면 자동으로 취소·환불돼요.</p>
+                    <label class="block"><span class="mb-1 block font-semibold">받는 분 이름</span>
+                        <input name="giftName" required maxlength="50" th:value="${param.giftName}" class="input" placeholder="홍길동"></label>
+                    <label class="block"><span class="mb-1 block font-semibold">받는 분 휴대폰</span>
+                        <input name="giftPhone" required inputmode="tel" maxlength="13" th:value="${param.giftPhone}" class="input" placeholder="010-1234-5678"></label>
+                    <label class="block"><span class="mb-1 block font-semibold">선물 메시지 <span class="font-normal text-gray-400">(선택, 200자)</span></span>
+                        <textarea name="giftMessage" rows="2" maxlength="200" class="input" th:text="${param.giftMessage}" placeholder="생일 축하해!"></textarea></label>
+                </div>
+
+                <th:block th:unless="${gift}">
+                <div th:if="${co.selectedAddress == null}" class="rounded-md bg-gray-50 p-4 text-center">
+                    <p class="text-gray-600">등록된 배송지가 없어요.</p>
+                    <a th:href="@{/my/addresses/new(continue='/checkout')}" class="btn-primary mt-3">배송지 추가하기</a>
+                </div>
+
+                <th:block th:if="${co.selectedAddress != null}">
+                    <div class="space-y-2">
+                        <a th:each="a : ${co.addresses}" th:href="@{/checkout(addressId=${a.id})}"
+                           class="flex gap-3 rounded-md border p-3"
+                           th:classappend="${a.id == co.selectedAddress.id} ? 'border-brand-600 bg-brand-50' : 'border-gray-200 hover:border-gray-400'">
+                            <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+                                  th:classappend="${a.id == co.selectedAddress.id} ? 'border-brand-600' : 'border-gray-300'">
+                                <span th:if="${a.id == co.selectedAddress.id}" class="h-2 w-2 rounded-full bg-brand-600"></span>
+                            </span>
+                            <span class="min-w-0">
+                                <b th:text="${a.recipient}">받는 분</b>
+                                <span th:if="${a.label != null}" class="ml-1 rounded bg-gray-100 px-1.5 text-xs text-gray-600" th:text="${a.label}">집</span>
+                                <span th:if="${a.defaultAddress}" class="ml-1 rounded bg-brand-100 px-1.5 text-xs text-brand-700">기본</span>
+                                <span class="block text-gray-600" th:text="${a.address1} + ' ' + ${a.address2 ?: ''}">주소</span>
+                                <span class="block text-xs text-gray-500" th:text="${a.phone} + ' · ' + ${a.entranceType.label()}">연락처</span>
+                            </span>
+                        </a>
+                    </div>
+                    <label class="mt-4 block">
+                        <span class="mb-1 block font-semibold">배송 요청사항</span>
+                        <select name="requestNote" class="input">
+                            <option th:each="n : ${co.requestNotes}" th:value="${n}" th:text="${n}"
+                                    th:selected="${n == co.selectedAddress.requestNote}">요청</option>
+                        </select>
+                    </label>
+                </th:block>
+                </th:block>
+            </section>
+
+            <!-- 방문 설치일 (양팡설치) -->
+            <section th:if="${co.needsInstallDate()}" class="rounded-3xl bg-white p-5">
+                <h2 class="mb-1 text-base font-bold">🔧 방문 설치일</h2>
+                <p class="mb-3 text-xs text-gray-500">양팡설치 상품은 고른 날 기사님이 방문해 조립·설치해요 (설치비 무료, 일요일 제외, 모의).</p>
+                <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                    <label th:each="d, st : ${co.installDates}" class="cursor-pointer rounded-md border border-gray-200 p-2 text-center has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+                        <input type="radio" name="installDate" th:value="${d.date}" required class="sr-only"
+                               th:checked="${param.installDate != null ? param.installDate[0] == d.date.toString() : st.first}">
+                        <span class="text-sm font-semibold" th:text="${d.label}">11/24(화)</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- 개인통관고유부호 (양팡직구) -->
+            <section th:if="${co.needsCustomsCode}" class="rounded-3xl bg-white p-5">
+                <h2 class="mb-1 text-base font-bold">🌏 개인통관고유부호</h2>
+                <p class="mb-3 text-xs text-gray-500">양팡직구(해외 배송) 상품이 있어 필요해요. P로 시작하는 13자리, 연구용이라 형식만 확인하는 가짜 번호예요. 다음 주문에 자동으로 채워요.</p>
+                <input name="customsCode" required maxlength="15" class="input font-mono" placeholder="P123456789012"
+                       th:value="${param.customsCode != null ? param.customsCode : co.savedCustomsCode}" pattern="[Pp][0-9]{12}" aria-label="개인통관고유부호">
+                <p class="mt-2 text-xs text-gray-500" th:text="|단순 변심으로 반품하면 해외 반송비 ${#numbers.formatInteger(policy['GLOBAL_RETURN_FEE'], 1, 'COMMA')}원을 내야 해요.|">해외 반송비</p>
+            </section>
+
+            <!-- 배송 상품 -->
+            <section class="rounded-3xl bg-white p-5">
+                <h2 class="mb-3 text-base font-bold">배송 상품 <span class="text-gray-400" th:text="${co.itemCount()}">0</span></h2>
+                <div th:each="g : ${co.groups}" class="mb-4 last:mb-0">
+                    <div class="mb-2 flex items-center justify-between rounded bg-gray-50 px-3 py-2">
+                        <span><b th:text="${g.label}">양팡배송</b> · <span class="font-semibold text-arrival" th:text="${g.arrivalText}">내일 도착</span></span>
+                        <span class="text-xs text-gray-500" th:text="${g.fee == 0} ? '무료배송' : '배송비 ' + ${#numbers.formatInteger(g.fee, 1, 'COMMA')} + '원'">무료배송</span>
+                    </div>
+                    <ul>
+                        <th:block th:each="l : ${g.lines}">
+                        <li class="flex gap-3 py-2">
+                            <img th:src="${l.imageUrl}" alt="" class="h-14 w-14 shrink-0 rounded object-cover">
+                            <div class="min-w-0 flex-1">
+                                <p class="line-clamp-1" th:text="${l.productName}">상품</p>
+                                <p class="text-xs text-gray-500">
+                                    <span th:if="${l.optionText != null}" th:text="${l.optionText} + ' · '"></span>
+                                    <span th:text="${l.quantity} + '개'">1개</span>
+                                </p>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <b th:text="${#numbers.formatInteger(l.lineAmount, 1, 'COMMA')} + '원'">0원</b>
+                                <p th:if="${l.couponDiscount > 0}" class="text-xs text-sale" th:text="'-' + ${#numbers.formatInteger(l.couponDiscount, 1, 'COMMA')} + '원'"></p>
+                            </div>
+                        </li>
+                        <li th:if="${!#lists.isEmpty(l.couponOptions)}" class="-mt-1 pb-2 pl-[68px]">
+                            <select th:name="'pc_' + ${l.index}" class="recalc w-full rounded border border-gray-300 px-2 py-1.5 text-xs"
+                                    hx-get="/checkout" hx-include="#checkout-form" hx-target="#checkout-form" hx-select="#checkout-form" hx-swap="outerHTML"
+                                    th:attr="aria-label=${l.productName} + ' 상품 쿠폰'">
+                                <option value="0">상품 쿠폰 사용 안 함</option>
+                                <option th:each="c : ${l.couponOptions}" th:value="${c.memberCouponId}" th:selected="${c.memberCouponId == l.chosenCoupon}"
+                                        th:text="'🎟️ ' + ${c.name} + ' (' + ${c.benefit} + ') -' + ${#numbers.formatInteger(c.discount, 1, 'COMMA')} + '원'">쿠폰</option>
+                            </select>
+                        </li>
+                        </th:block>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 할인 · 양팡캐시 (기획서 O-02) -->
+            <section class="rounded-3xl bg-white p-5">
+                <h2 class="mb-3 text-base font-bold">할인 · 양팡캐시</h2>
+                <label class="block">
+                    <span class="mb-1 block font-semibold">장바구니 쿠폰</span>
+                    <select name="cartCoupon" class="recalc input"
+                            hx-get="/checkout" hx-include="#checkout-form" hx-target="#checkout-form" hx-select="#checkout-form" hx-swap="outerHTML">
+                        <option value="">사용 안 함</option>
+                        <option th:each="c : ${co.cartCouponOptions}" th:value="${c.memberCouponId}" th:selected="${c.memberCouponId == co.chosenCartCoupon}"
+                                th:text="${c.name} + ' (' + ${c.benefit} + ')' + (${c.discount > 0} ? ' 최대 -' + ${#numbers.formatInteger(c.discount, 1, 'COMMA')} + '원' : ' · 조건 미달')">쿠폰</option>
+                    </select>
+                    <span th:if="${#lists.isEmpty(co.cartCouponOptions)}" class="mt-1 block text-xs text-gray-400">
+                        쓸 수 있는 장바구니 쿠폰이 없어요. <a th:href="@{/coupons}" class="underline">쿠폰존</a>에서 받아 보세요</span>
+                </label>
+                <div class="mt-4">
+                    <span class="mb-1 block font-semibold">양팡캐시 <span class="font-normal text-gray-500" th:text="'(보유 ' + ${#numbers.formatInteger(co.cashBalance, 1, 'COMMA')} + '원)'"></span></span>
+                    <div class="flex gap-2">
+                        <input type="number" name="cash" min="0" th:max="${co.maxCash()}" step="1" th:value="${co.cashUsed}" id="cash-input"
+                               class="recalc input" hx-get="/checkout" hx-trigger="change" hx-include="#checkout-form"
+                               hx-target="#checkout-form" hx-select="#checkout-form" hx-swap="outerHTML">
+                        <button type="button" class="btn-outline shrink-0" th:attr="data-fill-target='#cash-input',data-fill-value=${co.maxCash()}"
+                                th:disabled="${co.cashBalance == 0}">모두 사용</button>
+                    </div>
+                </div>
+                <div th:if="${!#lists.isEmpty(co.warnings)}" class="mt-3 hidden rounded-md bg-yellow-50 p-3 text-xs text-yellow-800 md:block">
+                    <p th:each="w : ${co.warnings}" th:text="${w}"></p></div>
+            </section>
+
+            <!-- 결제 수단 (모두 모의) -->
+            <section class="rounded-3xl bg-white p-5">
+                <h2 class="mb-1 text-base font-bold">결제 수단</h2>
+                <p class="mb-3 text-xs text-gray-500">연구용 모의 결제입니다. 실제로 돈이 나가지 않으며 카드 정보도 받지 않습니다.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <label th:each="m, st : ${co.paymentMethods}"
+                           class="flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 p-3 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+                        <input type="radio" name="method" th:value="${m.name()}" th:checked="${st.first}" class="accent-brand-600">
+                        <span th:text="${m.label()}">양페이</span>
+                    </label>
+                </div>
+            </section>
+        </div>
+
+        <!-- 결제 금액 -->
+        <aside class="mt-4 md:sticky md:top-40 md:mt-0 md:w-80">
+            <div class="rounded-3xl bg-white p-5 text-sm">
+                <p class="mb-3 font-bold">결제 금액</p>
+                <dl class="space-y-2">
+                    <div class="flex justify-between"><dt class="text-gray-500">상품금액</dt>
+                        <dd th:text="${#numbers.formatInteger(co.listAmount, 1, 'COMMA')} + '원'">0원</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">상품할인</dt>
+                        <dd class="text-sale" th:text="'-' + ${#numbers.formatInteger(co.productDiscount(), 1, 'COMMA')} + '원'">0원</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">쿠폰 할인</dt>
+                        <dd class="text-sale" th:text="'-' + ${#numbers.formatInteger(co.couponDiscount(), 1, 'COMMA')} + '원'">0원</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">양팡캐시</dt>
+                        <dd class="text-sale" th:text="'-' + ${#numbers.formatInteger(co.cashUsed, 1, 'COMMA')} + '원'">0원</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">배송비</dt>
+                        <dd th:text="${co.shippingFee == 0} ? '무료' : '+' + ${#numbers.formatInteger(co.shippingFee, 1, 'COMMA')} + '원'">0원</dd></div>
+                </dl>
+                <div class="mt-4 flex items-baseline justify-between border-t border-gray-200 pt-4">
+                    <span class="font-bold">최종 결제금액</span>
+                    <span class="text-xl font-extrabold text-brand-700" th:text="${#numbers.formatInteger(co.payAmount, 1, 'COMMA')} + '원'">0원</span>
+                </div>
+                <!-- 고객이 본 금액. 주문 순간 금액이 달라졌으면(특가 소진·가격 변경) 주문을 막고 다시 확인하게 한다 -->
+                <input type="hidden" name="expectedAmount" th:value="${co.payAmount}">
+                <label class="mt-4 flex items-start gap-2 text-xs text-gray-600">
+                    <input type="checkbox" name="agree" value="true" required class="mt-0.5 h-4 w-4 accent-brand-600">
+                    <span>주문 상품 정보와 결제 금액을 확인했으며, 판매자에게 배송 정보가 제공되는 것에 동의합니다. (필수)</span>
+                </label>
+                <button type="submit" class="btn-primary mt-4 hidden h-12 w-full text-base md:flex"
+                        th:disabled="${co.selectedAddress == null and !gift}"
+                        th:text="${#numbers.formatInteger(co.payAmount, 1, 'COMMA')} + '원 결제하기'">결제하기</button>
+            </div>
+        </aside>
+
+        <div class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white px-4 pb-5 pt-3 md:hidden">
+            <button type="submit" class="btn-primary h-12 w-full text-base" th:disabled="${co.selectedAddress == null and !gift}"
+                    th:text="${#numbers.formatInteger(co.payAmount, 1, 'COMMA')} + '원 결제하기'">결제하기</button>
+        </div>
+    </form>
+</div>
+</main>
+</body>
+</html>

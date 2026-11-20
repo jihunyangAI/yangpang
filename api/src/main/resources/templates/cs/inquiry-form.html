@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head><title>1:1 문의하기 - YangPang</title></head>
+<body>
+<main class="flex-1">
+    <div class="mx-auto w-full max-w-2xl px-4 py-6 text-sm md:py-8">
+        <a th:href="@{/cs}" class="text-xs text-gray-500 hover:underline">‹ 고객센터</a>
+        <h1 class="mb-4 mt-1 text-xl font-bold">1:1 문의하기</h1>
+        <form th:action="@{/cs/inquiries}" method="post" class="space-y-4 rounded-3xl bg-white p-5">
+            <label class="block"><span class="mb-1 block font-semibold">문의 유형</span>
+                <select name="category" required class="input">
+                    <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label()}">유형</option>
+                </select></label>
+            <label class="block"><span class="mb-1 block font-semibold">관련 주문 <span class="font-normal text-gray-400">(선택)</span></span>
+                <select name="orderNo" class="input">
+                    <option value="">선택 안 함</option>
+                    <option th:each="o : ${orders}" th:value="${o.orderNo}" th:text="${o.orderNo} + ' · ' + ${o.label}" th:selected="${o.orderNo == orderNo}">주문</option>
+                </select></label>
+            <label class="block"><span class="mb-1 block font-semibold">제목</span>
+                <input name="title" required maxlength="60" class="input" placeholder="예: 배송지를 바꾸고 싶어요"></label>
+            <label class="block"><span class="mb-1 block font-semibold">내용 <span class="font-normal text-gray-400">(10~2,000자)</span></span>
+                <textarea name="content" required minlength="10" maxlength="2000" rows="6" class="input" placeholder="문의 내용을 자세히 적어 주세요. 개인정보(카드번호 등)는 적지 마세요."></textarea></label>
+            <p class="text-xs text-gray-500">운영자가 확인해 답변해요. 답변이 달리면 알림함으로 알려 드려요. 답변 대기 문의는 5건까지 남길 수 있어요.</p>
+            <button class="btn-primary h-11 w-full">문의 남기기</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

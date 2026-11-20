@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'sellers')}">
+<head><title>판매자 - YangPang 관리자</title></head>
+<body>
+<main>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-bold" title="상호를 누르면 점수·제재·정산을 볼 수 있어요">판매자 <span class="text-base font-normal text-gray-500" th:text="${#lists.size(sellers)} + '곳'"></span></h1>
+        <div class="flex gap-2">
+            <form th:action="@{/admin/sellers/recompute-scores}" method="post"><button class="btn-outline bg-white">판매자 점수 지금 계산</button></form>
+            <form th:action="@{/admin/sellers/recompute-winners}" method="post"><button class="btn-outline bg-white">아이템 위너 전체 재계산</button></form>
+        </div>
+    </div>
+    <div class="overflow-x-auto rounded-lg bg-white">
+        <table class="w-full min-w-[900px] text-left">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
+            <tr><th class="px-3 py-2">번호</th><th class="px-3 py-2">상호 / 유형</th><th class="px-3 py-2">사업자번호 · 대표</th><th class="px-3 py-2">담당 계정</th>
+                <th class="px-3 py-2 text-right">오퍼 (위너)</th><th class="px-3 py-2 text-right">점수</th><th class="px-3 py-2">상태</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+            <tr th:each="s : ${sellers}">
+                <td class="px-3 py-2 text-gray-500" th:text="${s.id}"></td>
+                <td class="px-3 py-2"><a th:href="@{/admin/sellers/{id}(id=${s.id})}" class="font-bold text-brand-700 hover:underline" th:text="${s.name}"></a><span class="block text-xs text-gray-400" th:text="${s.seller_type}"></span></td>
+                <td class="px-3 py-2 text-xs" th:text="${s.business_no} + ' · ' + ${s.ceo_name}"></td>
+                <td class="px-3 py-2 text-xs text-gray-600" th:text="${s.accounts ?: '-'}"></td>
+                <td class="px-3 py-2 text-right" th:text="${s.offers} + ' (' + ${s.winning} + ')'"></td>
+                <td class="px-3 py-2 text-right"><b th:text="${s.score}"></b>
+                    <span th:if="${s.warnings > 0}" class="block text-xs text-amber-700" th:text="'30일 경고 ' + ${s.warnings}"></span></td>
+                <td class="px-3 py-2">
+                    <span class="badge" th:classappend="${s.status == 'ACTIVE'} ? 'bg-brand-50 text-brand-700' : (${s.status == 'PENDING'} ? 'bg-amber-50 text-amber-700' : (${s.status == 'SUSPENDED'} ? 'bg-rose-600 text-white' : 'bg-gray-100 text-gray-500'))"
+                          th:text="${s.status == 'ACTIVE'} ? '승인' : (${s.status == 'PENDING'} ? '심사중' : (${s.status == 'SUSPENDED'} ? '판매 정지' : '반려'))"></span>
+                    <div th:if="${s.status == 'PENDING'}" class="mt-1 flex gap-1">
+                        <form th:action="@{/admin/sellers/{id}/approve(id=${s.id})}" method="post"><button class="btn-primary h-7 px-2 text-xs">승인</button></form>
+                        <form th:action="@{/admin/sellers/{id}/reject(id=${s.id})}" method="post"><button class="btn-outline h-7 px-2 text-xs">반려</button></form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

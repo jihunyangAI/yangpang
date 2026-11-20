@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: layout(~{::title}, ~{::main}, 'policies')}">
+<head><title>운영 기준값 - YangPang 관리자</title></head>
+<body>
+<main class="space-y-5">
+    <div>
+        <h1 class="text-xl font-bold">운영 기준값</h1>
+        <p class="text-xs text-gray-500">배송비·반품 기간·적립률·수수료율 등을 바꿀 수 있어요. 바꾼 값은 <b>새로 계산하는 것부터</b> 적용되고,
+            이미 만든 주문·결제 금액은 그대로예요 (단, 아직 지급하지 않은 정산은 바로 다음 시뮬레이터 실행 때 새 수수료율로 다시 계산돼요). 바꿀 때마다 이유와 함께 이력이 남아요.
+            FAQ 문구에 적힌 숫자는 <a th:href="@{/admin/faq}" class="underline">FAQ 관리</a>에서 따로 고쳐 주세요.</p>
+    </div>
+
+    <section th:each="g : ${groups}" class="overflow-hidden rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold" th:text="${g.key}">분류</h2>
+        <div class="divide-y divide-gray-100">
+            <form th:each="s : ${g.value}" th:action="@{/admin/policies/{k}(k=${s.key})}" method="post"
+                  class="grid items-center gap-2 px-4 py-3 text-sm md:grid-cols-[1fr_190px_1fr_auto]">
+                <div class="min-w-0">
+                    <p class="font-semibold" th:text="${s.label}">이름</p>
+                    <p class="text-xs text-gray-500" th:text="${s.description}">설명</p>
+                    <p class="text-[11px] text-gray-400" th:if="${s.updatedBy != null}" th:text="'마지막 변경 ' + ${@fmt.dateTime(s.updatedAt)} + ' · ' + ${s.updatedBy}"></p>
+                </div>
+                <label class="flex items-center gap-1">
+                    <input type="number" name="value" required th:value="${s.value}" th:min="${s.min}" th:max="${s.max}"
+                           class="input h-9 w-28 py-0 text-right text-sm" th:attr="aria-label=${s.label}">
+                    <span class="text-gray-500" th:text="${s.unit}">원</span>
+                    <span class="text-[11px] text-gray-400" th:text="'(' + ${s.min} + '~' + ${#numbers.formatInteger(s.max, 1, 'COMMA')} + ')'"></span>
+                </label>
+                <input name="reason" maxlength="200" class="input h-9 py-0 text-sm" placeholder="바꾸는 이유 (5자 이상)" aria-label="바꾸는 이유">
+                <button class="btn-outline h-9 px-4 text-sm">저장</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="rounded-lg bg-white">
+        <h2 class="border-b border-gray-100 px-4 py-3 font-bold">변경 이력</h2>
+        <p th:if="${#lists.isEmpty(history)}" class="px-4 py-6 text-center text-sm text-gray-400">아직 바꾼 적이 없어요 (모두 기본값)</p>
+        <ul class="divide-y divide-gray-100 text-xs">
+            <li th:each="h : ${history}" class="flex flex-wrap gap-x-3 px-4 py-2">
+                <span class="text-gray-400" th:text="${@fmt.dateTime(h.changedAt)}">시각</span>
+                <b th:text="${h.label}">항목</b>
+                <span th:text="${#numbers.formatInteger(h.oldValue, 1, 'COMMA')} + ' → ' + ${#numbers.formatInteger(h.newValue, 1, 'COMMA')} + ${h.unit}">값</span>
+                <span class="text-gray-600" th:text="${h.reason}">이유</span>
+                <span class="text-gray-400" th:text="${h.changedBy}">누가</span>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>주문 상세 - YangPang</title>
+</head>
+<body>
+<main class="flex-1">
+    <div class="container-page py-4 md:flex md:gap-10 md:py-8">
+        <nav th:replace="~{my/nav :: nav('orders')}"></nav>
+        <section class="min-w-0 flex-1 space-y-4 text-sm" th:with="o=${d.order}">
+            <div>
+                <h1 class="text-xl font-bold">주문 상세</h1>
+                <p class="mt-1 text-gray-500"><span th:text="${@fmt.dateTime(o.orderedAt)}">일시</span> 주문 ·
+                    주문번호 <span class="font-mono" th:text="${o.orderNo}">번호</span>
+                    <a th:if="${o.subscriptionId != null}" th:href="@{/my/subscriptions}" class="badge ml-1 bg-emerald-50 text-emerald-700">정기배송 주문</a>
+                    <span th:if="${d.gift != null}" class="badge ml-1 bg-rose-50 text-rose-700">🎁 선물</span></p>
+            </div>
+
+            <!-- 선물: 받는 분 배송지 입력 대기 (가짜 링크) -->
+            <div th:if="${d.gift != null and d.gift.waiting() and o.giftWaiting}" class="rounded-lg border border-rose-200 bg-rose-50 p-4">
+                <p class="font-bold text-rose-800">받는 분이 배송지를 입력하면 출고돼요</p>
+                <p class="mt-1 text-xs text-rose-700" th:text="${d.gift.recipientName} + '님(' + ${d.gift.maskedPhone()} + ')께 문자로 링크를 보냈다고 가정해요 (모의). '
+                        + ${@fmt.dateTime(d.gift.expiresAt)} + '까지 입력하지 않으면 자동으로 취소·환불돼요'">안내</p>
+                <div class="mt-3 flex gap-2" th:with="giftUrl=${base} + '/gift/' + ${d.gift.token}">
+                    <input readonly th:value="${giftUrl}" class="input h-9 min-w-0 flex-1 bg-white font-mono text-xs" aria-label="선물 링크">
+                    <button type="button" class="btn-outline h-9 shrink-0 bg-white px-3 text-xs" th:attr="data-copy-text=${giftUrl}">링크 복사</button>
+                </div>
+            </div>
+
+            <!-- 배송 진행 단계 (기획서 MY-02) -->
+            <div class="rounded-lg border border-gray-200 p-5">
+                <p class="text-lg font-bold" th:classappend="${o.status.step() < 0} ? 'text-gray-400' : 'text-arrival'">
+                    <span th:text="${o.status.label()}">상태</span>
+                    <span th:if="${o.status.step() >= 1 and o.status.step() < 5 and !o.giftWaiting}" class="text-base font-semibold"
+                          th:text="' · ' + ${@fmt.day(o.items[0].promisedDate)} + ' 도착 예정'"></span>
+                    <span th:if="${o.giftWaiting and o.status.step() >= 1}" class="text-base font-semibold text-rose-700"> · 선물 배송지 입력 대기</span>
+                </p>
+                <ol th:if="${o.status.step() >= 1}" class="mt-4 grid grid-cols-5 gap-1 text-center text-xs">
+                    <li th:each="s : ${steps}">
+                        <div class="h-1.5 rounded-full" th:classappend="${o.status.step() >= s.step} ? 'bg-brand-600' : 'bg-gray-200'"></div>
+                        <p class="mt-1.5" th:classappend="${o.status.step() >= s.step} ? 'font-semibold text-gray-900' : 'text-gray-400'"
+                           th:text="${s.label}">단계</p>
+                    </li>
+                </ol>
+                <p th:if="${o.status.name() == 'PENDING_PAYMENT' and d.payment != null and d.payment.virtualAccount != null}" class="mt-3 text-gray-600">
+                    입금 계좌: <b th:text="${d.payment.virtualAccount}"></b> · 기한 <span th:text="${@fmt.dateTime(d.payment.depositDeadline)}"></span>
+                </p>
+            </div>
+
+            <!-- 주문 상품 -->
+            <div class="rounded-lg border border-gray-200">
+                <p class="border-b border-gray-100 px-4 py-3 font-bold">주문 상품</p>
+                <ul class="divide-y divide-gray-100">
+                    <li th:each="i : ${o.items}" class="flex gap-3 px-4 py-3">
+                        <a th:href="@{/products/{id}(id=${i.productId})}" class="h-16 w-16 shrink-0 overflow-hidden rounded bg-gray-100">
+                            <img th:src="${i.imageUrl}" alt="" class="h-full w-full object-cover">
+                        </a>
+                        <div class="min-w-0 flex-1">
+                            <a th:href="@{/products/{id}(id=${i.productId})}" class="line-clamp-2 hover:underline" th:text="${i.productName}">상품</a>
+                            <p class="text-xs text-gray-500">
+                                <span th:if="${i.optionText != null}" th:text="${i.optionText} + ' · '"></span>
+                                <span th:text="${i.quantity} + '개 · ' + ${i.deliveryType.label()}">1개</span>
+                            </p>
+                            <p class="mt-1 text-xs">
+                                <b th:classappend="${i.status.step() < 0} ? 'text-gray-400' : 'text-arrival'" th:text="${i.status.label()}">상태</b>
+                                <span th:if="${i.deliveredAt != null}" class="text-gray-500" th:text="' · ' + ${@fmt.dateTime(i.deliveredAt)} + ' 도착'"></span>
+                                <span th:if="${i.deliveredAt == null and i.status.step() >= 1 and !o.giftWaiting}" class="text-gray-500"
+                                      th:text="' · ' + ${@fmt.day(i.promisedDate)} + ' 도착 예정'"></span>
+                                <a th:if="${i.deliveryPhotoUrl != null}" th:href="${i.deliveryPhotoUrl}" target="_blank"
+                                   class="ml-1 text-brand-700 underline">📷 배송 사진</a>
+                            </p>
+                            <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
+                                <a th:if="${i.status.name() == 'PAID' or i.status.name() == 'PREPARING'}"
+                                   th:href="@{/my/orders/{no}/claim(no=${o.orderNo}, type='CANCEL', item=${i.id})}"
+                                   class="rounded border border-gray-300 px-2 py-1 hover:bg-gray-50">주문 취소</a>
+                                <a th:if="${i.status.name() == 'DELIVERED' or i.status.name() == 'CONFIRMED'}"
+                                   th:href="@{/my/reviews/new(orderItem=${i.id})}"
+                                   class="rounded border border-brand-600 px-2 py-1 text-brand-700 hover:bg-brand-50">리뷰 쓰기</a>
+                                <th:block th:if="${i.status.name() == 'DELIVERED' and i.deliveryType.name() != 'FRESH'}">
+                                    <a th:href="@{/my/orders/{no}/claim(no=${o.orderNo}, type='RETURN', item=${i.id})}"
+                                       class="rounded border border-gray-300 px-2 py-1 hover:bg-gray-50">반품 신청</a>
+                                    <a th:if="${i.optionText != null}" th:href="@{/my/orders/{no}/claim(no=${o.orderNo}, type='EXCHANGE', item=${i.id})}"
+                                       class="rounded border border-gray-300 px-2 py-1 hover:bg-gray-50">교환 신청</a>
+                                </th:block>
+                            </div>
+                        </div>
+                        <b class="shrink-0" th:text="${#numbers.formatInteger(i.lineAmount, 1, 'COMMA')} + '원'">0원</b>
+                    </li>
+                </ul>
+                <div th:if="${o.status.name() == 'PENDING_PAYMENT'}" class="border-t border-gray-100 px-4 py-3">
+                    <a th:href="@{/my/orders/{no}/claim(no=${o.orderNo}, type='CANCEL')}" class="btn-outline">주문 전체 취소</a>
+                </div>
+                <p th:if="${o.refundedAmount > 0}" class="border-t border-gray-100 px-4 py-3 text-xs text-arrival"
+                   th:text="'환불 완료 ' + ${#numbers.formatInteger(o.refundedAmount, 1, 'COMMA')} + '원 (모의) · 자세한 내용은 취소·반품·교환 내역에서 확인하세요'"></p>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <!-- 배송지 -->
+                <div class="rounded-lg border border-gray-200 p-4">
+                    <p class="mb-2 font-bold">받는 사람 <span th:if="${d.gift != null}" class="text-xs font-normal text-rose-700" th:text="'· 선물 ' + ${d.gift.status.label()}"></span></p>
+                    <th:block th:if="${d.gift != null}">
+                        <p th:text="${d.gift.recipientName} + ' · ' + ${d.gift.maskedPhone()}">받는 분</p>
+                        <p th:if="${o.giftWaiting}" class="text-gray-500">받는 분이 배송지를 입력하기 전이에요</p>
+                        <p th:unless="${o.giftWaiting}" class="text-gray-600">받는 분이 입력한 주소로 보내요 (보내는 분께는 주소를 보여 주지 않아요)</p>
+                        <p th:if="${d.gift.message != null}" class="mt-1 rounded bg-gray-50 px-2 py-1 text-xs text-gray-600" th:text="'“' + ${d.gift.message} + '”'">메시지</p>
+                    </th:block>
+                    <th:block th:if="${d.gift == null}">
+                        <p th:text="${o.recipient} + ' · ' + ${o.recipientPhone}">받는 분</p>
+                        <p class="text-gray-600" th:text="'(' + ${o.zipcode} + ') ' + ${o.address1} + ' ' + ${o.address2 ?: ''}">주소</p>
+                        <p class="mt-1 text-xs text-gray-500" th:text="${o.entranceType.label()} + (${o.requestNote != null} ? ' · ' + ${o.requestNote} : '')">요청</p>
+                    </th:block>
+                </div>
+                <!-- 결제 -->
+                <div class="rounded-lg border border-gray-200 p-4">
+                    <p class="mb-2 font-bold">결제 정보 <span class="text-xs font-normal text-gray-400">(모의 결제)</span></p>
+                    <dl class="space-y-1">
+                        <div class="flex justify-between"><dt class="text-gray-500">상품금액</dt><dd th:text="${#numbers.formatInteger(o.totalProductAmount, 1, 'COMMA')} + '원'"></dd></div>
+                        <div th:if="${o.couponDiscount > 0}" class="flex justify-between"><dt class="text-gray-500" th:text="${o.subscriptionId != null} ? '정기배송 할인' : '쿠폰 할인'">쿠폰 할인</dt><dd class="text-sale" th:text="'-' + ${#numbers.formatInteger(o.couponDiscount, 1, 'COMMA')} + '원'"></dd></div>
+                        <div th:if="${o.cashUsed > 0}" class="flex justify-between"><dt class="text-gray-500">양팡캐시</dt><dd class="text-sale" th:text="'-' + ${#numbers.formatInteger(o.cashUsed, 1, 'COMMA')} + '원'"></dd></div>
+                        <div class="flex justify-between"><dt class="text-gray-500">배송비</dt><dd th:text="${#numbers.formatInteger(o.shippingFee, 1, 'COMMA')} + '원'"></dd></div>
+                        <div class="flex justify-between border-t border-gray-100 pt-1 font-bold"><dt>결제금액</dt><dd th:text="${#numbers.formatInteger(o.paidAmount, 1, 'COMMA')} + '원'"></dd></div>
+                        <div class="flex justify-between text-xs text-gray-500" th:if="${d.payment != null}">
+                            <dt>결제수단</dt><dd th:text="${d.payment.method.label()}"></dd></div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- 양팡설치: 방문 설치일 -->
+            <p th:if="${o.installDate != null}" class="rounded-lg border border-gray-200 px-4 py-3 text-xs text-gray-600">
+                🔧 방문 설치일 <b th:text="${@fmt.day(o.installDate)}">11/24(화)</b> · 기사님이 방문해 조립·설치해요 (모의)</p>
+
+            <!-- 직구: 개인통관고유부호 -->
+            <p th:if="${o.customsCode != null}" class="rounded-lg border border-gray-200 px-4 py-3 text-xs text-gray-600">
+                🌏 개인통관고유부호 <b class="font-mono" th:text="${o.maskedCustomsCode()}">P12******9012</b> · 해외 배송 상품은 통관 후 국내 배송돼요 (모의)</p>
+
+            <!-- 비즈: 세금계산서 (모의) -->
+            <div th:if="${#authentication.principal.biz}" class="rounded-lg border border-gray-200 p-4">
+                <p class="mb-2 font-bold">세금계산서 <span class="text-xs font-normal text-gray-400">(비즈 회원 · 모의 발행)</span></p>
+                <dl th:if="${taxInvoice != null}" class="space-y-1 text-xs">
+                    <div class="flex justify-between"><dt class="text-gray-500">상태</dt><dd><b th:text="${taxInvoice.status.label()}">요청</b>
+                        <span th:if="${taxInvoice.invoiceNo != null}" class="font-mono" th:text="' · ' + ${taxInvoice.invoiceNo}"></span></dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">공급받는 자</dt>
+                        <dd th:text="${taxInvoice.companyName} + ' (' + ${taxInvoice.businessNo} + ')'">회사</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">공급가액 / 부가세</dt>
+                        <dd th:text="${#numbers.formatInteger(taxInvoice.supplyAmount(), 1, 'COMMA')} + '원 / ' + ${#numbers.formatInteger(taxInvoice.vat(), 1, 'COMMA')} + '원'">0</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">받을 이메일</dt><dd th:text="${taxInvoice.email}">메일</dd></div>
+                </dl>
+                <p th:if="${taxInvoice == null and !invoiceRequestable}" class="text-xs text-gray-500">결제가 끝난 주문만 요청할 수 있어요.</p>
+                <form th:if="${taxInvoice == null and invoiceRequestable}" th:action="@{/my/orders/{no}/tax-invoice(no=${o.orderNo})}" method="post"
+                      class="grid gap-2 text-xs md:grid-cols-2">
+                    <input name="businessNo" required class="input h-9" placeholder="사업자등록번호 000-00-00000" th:value="${bizInfo?.businessNo}" aria-label="사업자등록번호">
+                    <input name="companyName" required maxlength="50" class="input h-9" placeholder="상호" th:value="${bizInfo?.companyName}" aria-label="상호">
+                    <input name="ceoName" required maxlength="30" class="input h-9" placeholder="대표자" th:value="${bizInfo?.ceoName}" aria-label="대표자">
+                    <input name="email" type="email" required maxlength="100" class="input h-9" placeholder="세금계산서 받을 이메일" th:value="${bizInfo?.email}" aria-label="이메일">
+                    <button class="btn-outline h-9 md:col-span-2">세금계산서 요청</button>
+                </form>
+            </div>
+
+            <!-- 상태 변경 이력 -->
+            <details class="rounded-lg border border-gray-200 p-4">
+                <summary class="cursor-pointer font-bold">처리 이력</summary>
+                <ul class="mt-3 space-y-1 text-xs text-gray-600">
+                    <li th:each="e : ${d.events}">
+                        <span class="text-gray-400" th:text="${@fmt.dateTime(e.createdAt)}">시각</span>
+                        <b th:text="${e.toStatus.label()}">상태</b>
+                        <span th:if="${e.note != null}" th:text="'· ' + ${e.note}"></span>
+                    </li>
+                </ul>
+            </details>
+        </section>
+    </div>
+</main>
+</body>
+</html>

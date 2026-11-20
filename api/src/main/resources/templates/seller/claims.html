@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{seller/layout :: layout(~{::title}, ~{::main}, 'claims')}">
+<head><title>반품·교환 검수 - YangPang 셀러센터</title></head>
+<body>
+<main>
+    <h1 class="mb-1 text-xl font-bold">반품·교환 검수</h1>
+    <p class="mb-4 text-xs text-gray-500">판매자배송 상품의 반품·교환은 회수가 끝나면 판매자가 검수해 <b>승인</b>(환불·교환 재출고) 또는 <b>거절</b>합니다.
+        거절은 고객 귀책 사유(단순 변심·옵션 잘못 선택)만 가능하며, 회수 완료 후 24시간 안에 처리하지 않으면 자동 승인됩니다.</p>
+    <nav class="mb-4 flex flex-wrap gap-1">
+        <a th:each="t : ${ { {'WAITING','검수 대기'}, {'PROGRESS','회수 진행 중'}, {'DONE','처리 완료'} } }"
+           th:href="@{/seller/claims(tab=${t[0]})}" th:text="${t[1]}" class="rounded-full px-3 py-1.5"
+           th:classappend="${tab == t[0]} ? 'bg-indigo-700 text-white' : 'bg-white hover:bg-gray-50'">탭</a>
+    </nav>
+
+    <p th:if="${#lists.isEmpty(claims)}" class="rounded-lg bg-white px-4 py-10 text-center text-gray-400">해당하는 신청이 없어요</p>
+    <ul class="space-y-3">
+        <li th:each="c : ${claims}" class="rounded-lg bg-white p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <p><span class="badge" th:classappend="${c.type.name() == 'RETURN'} ? 'bg-rose-50 text-rose-700' : 'bg-indigo-50 text-indigo-700'"
+                         th:text="${c.type.label()}">반품</span>
+                    <span class="ml-1 font-mono text-xs" th:text="${c.claimNo}"></span>
+                    <span class="ml-1 text-xs text-gray-400" th:text="${@fmt.dateTime(c.requestedAt)}"></span></p>
+                <span class="badge bg-gray-100 text-gray-600" th:text="${c.status.label()}">상태</span>
+            </div>
+            <ul class="mt-2 space-y-1">
+                <li th:each="ci : ${c.items}" class="flex items-center gap-2">
+                    <img th:src="${ci.orderItem.imageUrl}" alt="" class="h-10 w-10 rounded object-cover">
+                    <span class="min-w-0"><span class="line-clamp-1" th:text="${ci.orderItem.productName}"></span>
+                        <span class="text-xs text-gray-400" th:text="${(ci.orderItem.optionText ?: '단일 상품') + ' x' + ci.orderItem.quantity}"></span></span>
+                </li>
+            </ul>
+            <p class="mt-2 text-xs text-gray-600">사유: <b th:text="${c.reason.label()}"></b>
+                (<span th:text="${c.fault.name() == 'SELLER'} ? '판매자 귀책' : '고객 귀책'"></span>)
+                <span th:if="${c.reasonDetail != null}" th:text="' · ' + ${c.reasonDetail}"></span></p>
+            <p th:if="${c.type.name() == 'RETURN' and c.status.name() != 'REJECTED'}" class="text-xs text-gray-600"
+               th:text="(${c.status.name() == 'COMPLETED'} ? '환불 ' : '환불 예정 ') + ${#numbers.formatInteger(c.refundAmount, 1, 'COMMA')} + '원 (반품비 ' + ${#numbers.formatInteger(c.returnShippingFee, 1, 'COMMA')} + '원 차감)'"></p>
+            <p th:if="${c.decidedBy != null}" class="text-xs text-gray-500"
+               th:text="${c.decidedBy == 'SELLER'} ? '판매자가 처리' : (${c.decidedBy == 'SYSTEM'} ? '기한 초과로 자동 승인' : '운영자가 처리')"></p>
+            <p th:if="${c.rejectReason != null}" class="text-xs text-rose-700" th:text="'거절 사유: ' + ${c.rejectReason}"></p>
+
+            <div th:if="${c.awaitingSeller()}" class="mt-3 flex flex-wrap items-start gap-2 border-t border-gray-100 pt-3">
+                <form th:action="@{/seller/claims/{no}/approve(no=${c.claimNo})}" method="post">
+                    <button class="btn-primary h-9 px-4">승인</button>
+                </form>
+                <form th:if="${c.rejectable()}" th:action="@{/seller/claims/{no}/reject(no=${c.claimNo})}" method="post" class="flex flex-1 flex-wrap gap-2">
+                    <input name="reason" required minlength="5" maxlength="300" placeholder="거절 사유 (예: 사용 흔적이 있어 재판매 불가)" class="input h-9 min-w-0 flex-1">
+                    <button class="btn-outline h-9 px-4">거절</button>
+                </form>
+                <p th:unless="${c.rejectable()}" class="self-center text-xs text-gray-400">판매자 귀책 사유라 거절할 수 없어요</p>
+            </div>
+        </li>
+    </ul>
+</main>
+</body>
+</html>
