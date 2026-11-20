@@ -1,4 +1,5 @@
 """M4 ⑦ 검증: 이미지 검색(색 분포) — 화면, 색으로 찾기 정확도, 사진 올리기, 잘못된 파일·큰 파일, 색상 반영 상품 이미지."""
+import colorsys
 import io
 import random
 import re
@@ -21,14 +22,6 @@ def check(name, cond, extra=""):
 
 def result_ids(body):
     return [int(x) for x in re.findall(r'<a href="/products/(\d+)"\s+class="group flex flex-col', body)]
-
-
-def swatches(ids):
-    if not ids:
-        return []
-    rows = q(f"select product_id, coalesce(swatch, '-') from product_image_feature where product_id in ({','.join(map(str, ids))})")
-    m = dict(r.split("|") for r in rows.splitlines())
-    return [m.get(str(i), "?") for i in ids]
 
 
 def upload(client, data, filename="photo.png", ctype="image/png"):
@@ -69,24 +62,55 @@ check("헤더에 이미지로 찾기", 'href="/search/image"' in body)
 code, body, _ = c.get("/search/image")
 check("이미지 검색 화면", code == 200 and "사진 올리기" in body and "블랙" in body)
 
-COLORS = {"블랙": (35, 35, 38), "네이비": (31, 47, 94), "그린": (47, 138, 85), "핑크": (238, 134, 174), "베이지": (216, 192, 154),
+COLORS = {"블랙": (35, 35, 38), "네이비": (31, 47, 94), "그린": (74, 154, 58), "핑크": (238, 134, 174), "베이지": (216, 192, 154),
           "그레이": (140, 144, 150), "화이트": (247, 247, 245)}
-for name in COLORS:
+
+
+def bin_of(rgb):
+    """ColorHistogram.bin과 같은 규칙 (회색 4칸 + 색상 12 × 채도 2 × 밝기 2)"""
+    h, s_, v = colorsys.rgb_to_hsv(*(x / 255 for x in rgb))
+    if s_ < 0.15 or v < 0.12:
+        return 0 if v < 0.25 else 1 if v < 0.5 else 2 if v < 0.85 else 3
+    return 4 + min(11, int(h * 12)) * 4 + (0 if s_ < 0.5 else 1) * 2 + (0 if v < 0.5 else 1)
+
+
+def share_sql(rgb):
+    """상품 사진에서 그 색(이웃 색상 칸은 절반)이 차지하는 비율 SQL 식 (배열은 1부터)"""
+    b = bin_of(rgb)
+    if b < 4:
+        return f"hist[{b + 1}]"
+    hue, rest = (b - 4) // 4, (b - 4) % 4
+    left, right = 4 + (hue - 1) % 12 * 4 + rest, 4 + (hue + 1) % 12 * 4 + rest
+    return f"(hist[{b + 1}] + 0.5 * (hist[{left + 1}] + hist[{right + 1}]))"
+
+
+def avg_share(ids, rgb):
+    if not ids:
+        return 0.0
+    return float(q(f"select avg({share_sql(rgb)}) from product_image_feature where product_id in ({','.join(map(str, ids))})") or 0)
+
+
+def base_share(rgb):
+    return float(q(f"select avg({share_sql(rgb)}) from product_image_feature"))
+
+
+# 실제 사진이라 "같은 색 이름"이 아니라, 결과 사진에 그 색이 전체 평균보다 훨씬 많이 들어 있는지 본다
+for name, rgb in COLORS.items():
     code, body, _ = c.get("/search/image?color=" + urllib.parse.quote(name))
-    sw = swatches(result_ids(body)[:10])
-    hit = sum(1 for s in sw if s == name)
-    need = 6 if name in ("화이트", "그레이") else 9   # 흰색·회색은 파스텔 배경과 섞여 덜 정확
-    check(f"색으로 찾기 '{name}' 상위 10개 중 같은 색", code == 200 and hit >= need, f"{hit}/10 {sw}")
+    ids = result_ids(body)[:10]
+    top, base = avg_share(ids, rgb), base_share(rgb)
+    check(f"색으로 찾기 '{name}' 상위 10개에 그 색이 많음", code == 200 and len(ids) >= 5 and top >= base * 2.5 and top >= 0.08,
+          f"상위 {top:.2f} / 전체 평균 {base:.2f}")
 
 for name in ("네이비", "그린", "핑크"):
     code, body, _ = upload(c, photo(COLORS[name]))
-    sw = swatches(result_ids(body)[:10])
-    hit = sum(1 for s in sw if s == name)
-    check(f"사진 올리기 ({name} 물건 사진)", code == 200 and hit >= 8 and "올린 사진의 주요 색" in body, f"{hit}/10")
+    ids = result_ids(body)[:10]
+    top, base = avg_share(ids, COLORS[name]), base_share(COLORS[name])
+    check(f"사진 올리기 ({name} 물건 사진)", code == 200 and top >= base * 2.5 and "올린 사진의 주요 색" in body, f"상위 {top:.2f} / 평균 {base:.2f}")
 
 jpg = io.BytesIO(); Image.open(io.BytesIO(photo(COLORS["블랙"]))).save(jpg, "JPEG", quality=80)
 code, body, _ = upload(c, jpg.getvalue(), "photo.jpg", "image/jpeg")
-check("JPG도 됨", code == 200 and sum(1 for s in swatches(result_ids(body)[:10]) if s == "블랙") >= 8)
+check("JPG도 됨", code == 200 and avg_share(result_ids(body)[:10], COLORS["블랙"]) >= base_share(COLORS["블랙"]) * 2.5)
 
 before = q("select count(*) from product_image_feature")
 code, body, h = upload(c, b"this is not an image", "x.png")
@@ -98,13 +122,17 @@ code, body, _ = c.get("/search/image")
 check("안내 메시지 표시", "5MB까지" in body)
 check("올린 사진은 저장하지 않음", q("select count(*) from product_image_feature") == before)
 
-# 상품 이미지: 색상 옵션이 있으면 그 색, 옵션마다 다른 색
-pid, colors = q("""select p.id, string_agg(distinct i.option1_value, ',') from product p join item i on i.product_id=p.id
-                   where p.option1_name='색상' group by p.id having count(distinct i.option1_value) >= 2 order by p.id limit 1""").split("|")
-code, svg1, _ = c.get(f"/images/products/{pid}/1.svg")
-code, svg2, _ = c.get(f"/images/products/{pid}/2.svg")
-check("색상 상품 이미지에 색 이름", "YANGPANG DEMO · " in svg1 and any(x in svg1 for x in colors.split(",")))
-check("두 번째 이미지는 다른 색", re.search(r'rx="30" fill="(#[0-9A-F]{6})"', svg1).group(1) != re.search(r'rx="30" fill="(#[0-9A-F]{6})"', svg2).group(1))
-plain = q("select id from product where coalesce(option1_name,'') <> '색상' order by id limit 1")
-code, svg, _ = c.get(f"/images/products/{plain}/1.svg")
-check("색상 없는 상품은 기존 그림", 'r="46"' in svg and "YANGPANG DEMO · 1" in svg)
+# 상품 이미지: 카테고리 사진(Pixabay 무료 사진)으로 보낸다
+pid = q("select id from product where status='ON_SALE' order by id limit 1")
+code, _, h1 = c.get(f"/images/products/{pid}/1.svg")
+code2, _, h2 = c.get(f"/images/products/{pid}/2.svg")
+loc1, loc2 = h1.get("Location", ""), h2.get("Location", "")
+check("상품 이미지 → 카테고리 사진으로", code == 302 and re.search(r"/images/catalog/[a-z0-9-]+/\d+\.jpg$", loc1) is not None, loc1)
+check("같은 상품의 두 번째 이미지는 다른 사진", code2 == 302 and loc1 != loc2)
+req = urllib.request.Request(loc1 if loc1.startswith("http") else BASE + loc1)
+with urllib.request.urlopen(req) as r:
+    check("사진 파일 (jpg)", r.status == 200 and r.headers.get("Content-Type", "").startswith("image/jpeg") and len(r.read()) > 5000)
+code, body, _ = c.get("/images/catalog/credits.csv")
+check("사진 출처 목록", code == 200 and "pixabay" in body)
+check("모든 상품 카테고리에 사진", q("""select count(distinct c.name) from product p join category c on c.id=p.category_id""") ==
+      str(len(c.get("/images/catalog/manifest.csv")[1].strip().splitlines()) - 1))

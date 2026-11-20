@@ -25,6 +25,7 @@ public final class ColorHistogram {
     static final int SIZE = 64;
     static final double WHITE_WEIGHT = 0.3;
     static final int WHITE_BIN = 3;
+    static final double NEIGHBOR_WEIGHT = 0.5;
 
     private ColorHistogram() {
     }
@@ -60,6 +61,37 @@ public final class ColorHistogram {
     }
 
     /**
+     * 사진용: 가장자리(바깥 1/8 테두리)에 많은 색은 바탕으로 보고 덜 센다 → 물건 색이 비교를 좌우하게.
+     * 테두리의 30% 넘게 차지하는 칸을 0.1배로 줄이고 다시 합 1로 맞춘다.
+     */
+    public static float[] ofPhoto(BufferedImage source) {
+        float[] h = of(source);
+        BufferedImage small = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = small.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, SIZE, SIZE);
+        g.drawImage(source, 0, 0, SIZE, SIZE, null);
+        g.dispose();
+        int edge = SIZE / 8;
+        float[] border = new float[BINS];
+        int count = 0;
+        for (int y = 0; y < SIZE; y++) {
+            for (int x = 0; x < SIZE; x++) {
+                if (x >= edge && x < SIZE - edge && y >= edge && y < SIZE - edge) continue;
+                border[bin(small.getRGB(x, y))]++;
+                count++;
+            }
+        }
+        float sum = 0;
+        for (int i = 0; i < BINS; i++) {
+            if (border[i] / count > 0.3f) h[i] *= 0.1f;
+            sum += h[i];
+        }
+        for (int i = 0; i < BINS; i++) h[i] /= sum;
+        return h;
+    }
+
+    /**
      * 히스토그램 교집합 (흰색 칸은 덜 센다) → 0~1.
      * 찾는 사진(query) 기준으로 나눠, 찾는 사진의 색이 상품 이미지에 얼마나 들어 있는지를 본다.
      */
@@ -67,7 +99,14 @@ public final class ColorHistogram {
         double sum = 0, total = 0;
         for (int i = 0; i < BINS; i++) {
             double w = i == WHITE_BIN ? WHITE_WEIGHT : 1;
-            sum += w * Math.min(query[i], product[i]);
+            // 실제 사진은 같은 색이라도 색상 칸 경계에서 이웃 칸으로 갈린다 → 이웃 색상 칸(채도·밝기 같은 칸)도 절반만큼 같은 색으로 본다
+            double p = product[i];
+            if (i >= GRAY_BINS) {
+                int k = i - GRAY_BINS, hue = k / 4, rest = k % 4;
+                p += NEIGHBOR_WEIGHT * (product[GRAY_BINS + Math.floorMod(hue - 1, HUE_BINS) * 4 + rest]
+                        + product[GRAY_BINS + Math.floorMod(hue + 1, HUE_BINS) * 4 + rest]);
+            }
+            sum += w * Math.min(query[i], p);
             total += w * query[i];
         }
         return total == 0 ? 0 : sum / total;

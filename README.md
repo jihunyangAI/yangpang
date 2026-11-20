@@ -68,6 +68,8 @@ Gradle과 Node.js(Tailwind 빌드용)는 Gradle이 알아서 내려받으므로 
 | `/admin/policies` | 운영 기준값 (배송비·반품 기간·수수료율·적립 금액 등 21개) |
 | `/admin/sellers/{id}`, `/admin/settlements`, `/admin/ads` | 판매자 점수·제재, 정산 현황, 광고 현황 |
 
+**상품 사진**: 카테고리별 실제 사진(Pixabay 무료 사진 474장, `api/src/main/resources/static/images/catalog/`, 출처는 같은 폴더 `credits.csv`). 다시 받으려면 `tools/catalog-photos/README.md`.
+
 **AI 리뷰 요약·쇼핑 도우미 챗봇**: 앱을 띄우기 전에 `ANTHROPIC_API_KEY` 환경 변수를 설정하면 켜집니다(실제 요금 발생). 없으면 화면에서 숨겨집니다.
 
 **배송을 보고 싶다면**: 주문한 뒤 `/admin/simulator`에서 "+1일"을 누르거나 배속을 60x로 올리면 배송 단계·구매확정·반품 회수가 진행됩니다. "실제 시각으로 되돌리기"로 원래대로.
@@ -100,4 +102,5 @@ api/      웹 앱 (Spring Boot + Thymeleaf + htmx + Tailwind), 화면: api/src/m
 simulator/ 시뮬레이터 (배송 진행·정산·정기배송·판매자 점수 등을 시뮬레이션 시계로)
 seed/     가짜 데이터 생성기 (Datafaker + 한국형 사전)
 tests/e2e/ 화면·흐름 검사 스크립트 (Python)
+tools/catalog-photos/ 상품 사진 받는 도구 (Pixabay)
 ```

@@ -66,14 +66,18 @@ check("비회원 홈에는 추천 섹션 없음", 'id="home-foryou"' not in body
 # 3) 재구매 추천: 생활용품(30일 주기) 상품을 35일 전에 산 주문 하나를 만들어 확인
 order_item = q(f"""select oi.id from order_item oi join orders o on o.id=oi.order_id join product p on p.id=oi.product_id
     join category_tree t on t.id=p.category_id join category tc on tc.id=t.top_id
-    where o.member_id={MID} and tc.name='생활용품' and oi.status in ('DELIVERED','CONFIRMED') and p.status='ON_SALE' limit 1""")
+    where o.member_id={MID} and tc.name='생활용품' and oi.status in ('DELIVERED','CONFIRMED') and p.status='ON_SALE'
+      and (select count(distinct o2.id) from order_item oi2 join orders o2 on o2.id=oi2.order_id
+           where o2.member_id={MID} and oi2.product_id=p.id) = 1   -- 한 번만 산 상품 (여러 번 샀으면 내 구매 간격으로 계산됨)
+    order by oi.id limit 1""")
 if not order_item:
     print("SKIP 재구매: normal@ 생활용품 구매 이력 없음")
 else:
     prod = q(f"select product_id from order_item where id={order_item}")
     q(f"update orders set ordered_at = now() - interval '35 days' where id=(select order_id from order_item where id={order_item})")
     q(f"""update orders set ordered_at = now() - interval '120 days' where member_id={MID} and id in
-          (select order_id from order_item where product_id={prod} and id<>{order_item})""")
+          (select order_id from order_item where product_id={prod})
+          and id <> (select order_id from order_item where id={order_item})""")  # 같은 주문에 같은 상품이 여러 줄이어도 그 주문은 35일 전 그대로
     code, body, _ = c.get("/my")
     check("마이양팡에 '다시 살 때가 됐어요'", "다시 살 때가 됐어요" in body)
     sec = body[body.find("다시 살 때가 됐어요"):]

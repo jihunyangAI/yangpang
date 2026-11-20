@@ -1,0 +1,97 @@
+slug,picks
+dress,1 2 3 4 9
+blouse,2 3 7 8
+tshirt,0 1 2 4 7 9
+jeans,1 4 6 10 11
+backpack,1 5 11
+wallet,0 5 6 10 11
+toner,0 3 5 7 10 11
+cream,0 1 2 3 6 9
+lipstick,0 2 3 5 6 10
+cushion-compact,0 6 7 8 10 11
+shampoo,0 2 4 7 10
+body-wash,0 1 3 5 8
+diaper,2 3 4 5 10
+wet-wipes,0 1 2
+sippy-cup,0 1 2 10
+baby-bowl,0 3 5 6 8 11
+baby-bodysuit,0 1 2 5
+ramen,0 1 2 4 8 10
+cooked-rice,7 8 9 10
+water,0 8 9 11
+instant-coffee,0 3 5 6 11
+nuts,0 1 3 5 8 11
+snack,0 1 3 4 6 8
+frying-pan,0 3 6 10 11
+pot,2 4 8 9
+plate,3 7 9 10
+mug,2 7 8 10
+food-container,3 5 7 8
+zipper-bag,1 3 4 7 11
+laundry-detergent,0 7 10 11
+dish-soap,0 1 2 3
+toilet-paper,0 4 6 7 10 11
+paper-towel,1 2 3 4
+toothbrush,0 1 2 8
+towel,3 6 10
+desk,6 7 9 11
+chair,2 6 9 10 11
+blanket,0 3 4 6 8 11
+pillow,0 2 4 7 8
+desk-lamp,0 2 10
+led-light,0 1 4 5 8 10
+vacuum,0 2 3 4 6 10
+humidifier,0 1 2 3 4 5
+air-fryer,0 2 3 4
+kettle,0 1 3 5 9 11
+earbuds,0 2 4 5 8
+power-bank,0 1 2 6 7
+dumbbell,1 2 8 9 11
+yoga-mat,0 1 2 3 4 6
+tent,0 2 3 4 10 11
+camping-chair,0 2 6
+bike-helmet,0 4 7 11
+bike-light,0 2 3 4 9
+car-towel,3 6 8 9
+car-shampoo,0 1 4 5 6 8
+dashcam,0 1 5 6 10
+car-charger,1 2 6
+car-freshener,0 2 3 5
+seat-cover,0 1 4 11
+novel,1 3 4 5 10 11
+short-story,1 2 5 6 10 11
+self-help,0 2 6 7 8 10
+business-book,0 1 3 5 9 10
+kpop-album,0 1 2 4 7
+classical-album,0 2 4 5 9 11
+block-set,2 3 4 5 7 8
+big-block,0 1 6 7 10 11
+board-game,0 1 2 5 8 9
+jigsaw,0 1 7 9 10 11
+plastic-model,0 4 6 10
+rc-car,0 1 5 7 11
+ballpen,2 3 4 6 7 9
+highlighter,0 1 7 8
+spiral-notebook,0 2 3 7 9 10
+diary,4 5 7 8 9
+stapler,0 1 9 11
+file-folder,2 4 6 11
+dog-food,0 1 5 8 9
+dog-treat,1 2 3 4 7
+cat-food,0 1 8 9 11
+cat-litter,0 1 8
+harness,1 4 9 10 11
+pet-bed,1 2 8 10 11
+multivitamin,1 2 6 7 8 10
+vitamin-c,0 2 3 4 5 6
+probiotics,1 2 3 6 11
+omega3,2 4 5 6 9 11
+protein-shake,2 3 4 9
+diet-tea,0 1 4 6 8 11
+apple,1 4 5 7 8 9
+banana,0 1 3 7 11
+onion,0 1 10
+lettuce,0 1 2 3
+pork,1 3 4 5 7 9
+egg,0 1 2 10
+wine,3 4 5 9 10 11

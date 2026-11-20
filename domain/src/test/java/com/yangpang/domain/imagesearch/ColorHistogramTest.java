@@ -42,6 +42,31 @@ class ColorHistogramTest {
     }
 
     @Test
+    void 이웃한_색상도_비슷하게_본다() {
+        // 초록(색상 약 110°)으로 찾을 때 연두빛 상추(약 78°, 이웃 칸) 사진도 어느 정도 맞아야 한다
+        float[] green = h("그린");
+        float[] lettuce = ColorHistogram.of(ColorHistogram.swatch(new Color(0x8D, 0xB2, 0x3A)));
+        assertThat(ColorHistogram.bin(0x8DB23A)).isNotEqualTo(ColorHistogram.bin(0x4A9A3A));
+        assertThat(ColorHistogram.similarity(green, lettuce)).isGreaterThan(ColorHistogram.similarity(green, h("레드")) + 0.2);
+    }
+
+    @Test
+    void 사진은_바탕색을_덜_센다() {
+        // 회색 탁자(테두리 전체) 위 가운데 빨간 물건: 그냥 세면 회색이 더 많지만, 사진용은 빨강이 더 많아야 한다
+        var img = new java.awt.image.BufferedImage(100, 100, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var g = img.createGraphics();
+        g.setColor(new Color(150, 150, 150));
+        g.fillRect(0, 0, 100, 100);
+        g.setColor(new Color(0xD3, 0x2F, 0x2F));
+        g.fillRect(30, 30, 40, 40);
+        g.dispose();
+        int gray = ColorHistogram.bin(0x969696), red = ColorHistogram.bin(0xD32F2F);
+        assertThat(ColorHistogram.of(img)[gray]).isGreaterThan(ColorHistogram.of(img)[red]);
+        float[] photo = ColorHistogram.ofPhoto(img);
+        assertThat(photo[red]).isGreaterThan(photo[gray]);
+    }
+
+    @Test
     void 가까운_색_이름() {
         assertThat(ColorNames.nearest(new Color(20, 30, 90))).isEqualTo("네이비");
         assertThat(ColorNames.nearest(new Color(250, 250, 250))).isEqualTo("화이트");

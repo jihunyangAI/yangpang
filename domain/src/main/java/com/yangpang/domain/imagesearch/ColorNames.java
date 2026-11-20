@@ -20,7 +20,7 @@ public final class ColorNames {
         COLORS.put("네이비", new Color(0x1F, 0x2F, 0x5E));
         COLORS.put("베이지", new Color(0xD8, 0xC0, 0x9A));
         COLORS.put("핑크", new Color(0xEE, 0x86, 0xAE));
-        COLORS.put("그린", new Color(0x2F, 0x8A, 0x55));
+        COLORS.put("그린", new Color(0x4A, 0x9A, 0x3A));   // 실제 사진(채소·식물)에 흔한 초록 (색상 약 110°)
         COLORS.put("레드", new Color(0xD3, 0x2F, 0x2F));
         COLORS.put("블루", new Color(0x2F, 0x6F, 0xD8));
         COLORS.put("옐로우", new Color(0xF2, 0xC9, 0x2E));

@@ -1,7 +1,9 @@
 package com.yangpang.api.search;
 
 import com.yangpang.api.web.product.ProductImageSpecs;
+import com.yangpang.api.web.product.ProductPhotos;
 import com.yangpang.domain.imagesearch.ColorHistogram;
+import com.yangpang.domain.imagesearch.ColorNames;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -34,6 +36,7 @@ public class ImageSearchService {
 
     private final JdbcTemplate jdbc;
     private final ProductImageSpecs specs;
+    private final ProductPhotos photos;
     private volatile List<Entry> cache;
 
     @Async
@@ -49,8 +52,11 @@ public class ImageSearchService {
                 select p.id from product p where p.status = 'ON_SALE'
                 and not exists (select 1 from product_image_feature f where f.product_id = p.id) order by p.id""", Long.class);
         for (Long id : missing) {
+            // 카테고리 사진이 있으면 그 사진, 없으면 그림으로. 주요 색(swatch)은 사진이면 바탕(흰색) 뺀 가장 많은 색
+            var photo = photos.image(id, 1);
             var spec = specs.spec(id, 1);
-            float[] h = ColorHistogram.of(specs.raster(spec, 128));
+            float[] h = photo.map(ColorHistogram::ofPhoto).orElseGet(() -> ColorHistogram.of(specs.raster(spec, 128)));
+            String swatch = photo.isPresent() ? mainColorName(h) : spec.swatchName();
             Float[] boxed = new Float[h.length];
             for (int i = 0; i < h.length; i++) boxed[i] = h[i];
             jdbc.update(con -> {
@@ -60,13 +66,18 @@ public class ImageSearchService {
                 ps.setLong(1, id);
                 Array arr = con.createArrayOf("real", boxed);
                 ps.setArray(2, arr);
-                ps.setString(3, spec.swatchName());
+                ps.setString(3, swatch);
                 ps.setTimestamp(4, Timestamp.from(Instant.now()));
                 return ps;
             });
         }
         if (!missing.isEmpty() || cache == null) cache = load();
         return missing.size();
+    }
+
+    static String mainColorName(float[] h) {
+        return ColorHistogram.topBins(h, 2, 0).stream().filter(b -> b != 3).findFirst()   // 3 = 흰색 칸(사진 바탕)
+                .map(b -> ColorNames.nearest(ColorHistogram.binColor(b))).orElse("화이트");
     }
 
     /** 새로 계산하게 지운다 (운영자 "다시 계산") */

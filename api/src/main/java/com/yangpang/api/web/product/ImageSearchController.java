@@ -32,7 +32,7 @@ public class ImageSearchController {
 
     static final long MAX_BYTES = 5L * 1024 * 1024;
     static final int MAX_PIXELS = 6000;
-    static final double MIN_SCORE = 0.25;
+    static final double MIN_SCORE = 0.15;   // 고른 색이 상품 사진의 15% 이상 (실제 사진은 바탕·다른 색이 섞여 있음)
 
     public record QueryColor(String hex, String name, int percent) {
     }
@@ -49,7 +49,7 @@ public class ImageSearchController {
         if (color != null) {
             Color c = ColorNames.of(color).orElseThrow(() -> new BusinessException("고를 수 있는 색이 아니에요"));
             model.addAttribute("chosen", color);
-            search(ColorHistogram.of(ColorHistogram.swatch(c)), model);
+            search(ColorHistogram.ofPhoto(ColorHistogram.swatch(c)), model);   // 흰 바탕은 덜 세고 고른 색 위주로
         }
         model.addAttribute("pageTitle", "이미지로 찾기");
         return "product/image-search";
@@ -62,7 +62,7 @@ public class ImageSearchController {
         BufferedImage img = read(photo);
         model.addAttribute("colors", ColorNames.COLORS.entrySet().stream().map(e -> Map.entry(e.getKey(), ColorHistogram.hex(e.getValue()))).toList());
         model.addAttribute("uploaded", true);
-        search(ColorHistogram.of(img), model);
+        search(ColorHistogram.ofPhoto(img), model);   // 올린 사진의 바탕(가장자리) 색은 덜 센다
         model.addAttribute("pageTitle", "이미지로 찾기");
         return "product/image-search";
     }

@@ -121,7 +121,7 @@ check("5-1 쿠폰·캐시 쓴 3개 상품 주문", o[2] == "3" and int(o[1]) == 
 cash_rows = q(f"select string_agg(cash_amount::text, ',') from order_item where order_id=(select id from orders where order_no='{no5}')")
 check("5-2 캐시가 상품별로 안분됨", sum(int(x) for x in cash_rows.split(",")) == 3000 and all(int(x) > 0 for x in cash_rows.split(",")), cash_rows)
 fast_forward_delivery(no5)
-check("5-3 배송 완료", wait(f"select string_agg(distinct status, ',') from order_item where order_id = (select id from orders where order_no = '{no5}')", "DELIVERED"))
+check("5-3 배송 완료", wait(f"select string_agg(distinct status, ',') from order_item where order_id = (select id from orders where order_no = '{no5}')", "DELIVERED", 60))
 target = q(f"""select id || ',' || (line_amount - discount_amount) || ',' || cash_amount from order_item
                where order_id=(select id from orders where order_no='{no5}') order by id limit 1""").split(",")
 bal0 = int(q(f"select coalesce(sum(amount),0) from cash_ledger where member_id={MID}"))

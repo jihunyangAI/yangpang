@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Duration;
 
 /**
- * 가짜 상품 이미지 (기획서 7.1: 저작권 문제가 없는 플레이스홀더).
- * 상품 이미지는 ProductImageSpecs가 그린다 (색상 옵션이 있으면 그 색, 없으면 상품 id로 고른 파스텔).
+ * 상품 이미지: 카테고리 사진(ProductPhotos, Pixabay 무료 사진)이 있으면 그 사진, 없으면 ProductImageSpecs가 그린 그림
+ * (색상 옵션이 있으면 그 색, 없으면 상품 id로 고른 파스텔). 리뷰·배송 사진은 그림 그대로.
  */
 @RestController
 @RequiredArgsConstructor
@@ -23,9 +23,16 @@ public class ProductImageController {
             {"#F1F6E6", "#5B7A1E"}, {"#EAF4FB", "#1F6B9A"}, {"#FFF8E1", "#A3730B"}, {"#F3EEFA", "#7445A8"}};
 
     private final ProductImageSpecs specs;
+    private final ProductPhotos photos;
 
+    /** 카테고리 사진이 있으면 그 사진으로 보내고(브라우저가 하루 동안 기억), 없으면 그림(SVG)을 그린다 */
     @GetMapping(value = "/images/products/{productId}/{index}.svg")
     public ResponseEntity<String> productImage(@PathVariable long productId, @PathVariable int index) {
+        var photo = photos.url(productId, index);
+        if (photo.isPresent()) {
+            return ResponseEntity.status(302).location(java.net.URI.create(photo.get()))
+                    .cacheControl(CacheControl.maxAge(Duration.ofDays(1)).cachePublic()).build();
+        }
         String svg = specs.svg(specs.spec(productId, index));
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf("image/svg+xml"))
