@@ -14,7 +14,10 @@
         <div class="grid gap-4 md:grid-cols-[7fr_5fr] md:gap-6">
             <div class="relative overflow-hidden rounded-[26px] md:rounded-[28px]" data-carousel>
                 <div class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth" data-carousel-track>
-                    <a th:each="b : ${banners}" th:href="${b.linkUrl}" th:with="pics=${@visuals.forLink(b.linkUrl, 3)}"
+                    <th:block th:each="b : ${banners}" th:with="pics=${@visuals.forLink(b.linkUrl, 3)}">
+                    <!-- 양팡플러스(무료배송) 배너는 움직이는 전용 디자인 -->
+                    <th:block th:if="${b.theme.name() == 'PLUS'}"><a th:replace="~{fragments/promo :: plus(${b}, ${pics}, ${policy['SHIPPING_FEE']})}"></a></th:block>
+                    <a th:unless="${b.theme.name() == 'PLUS'}" th:href="${b.linkUrl}"
                        class="relative flex h-52 w-full shrink-0 snap-start items-end overflow-hidden bg-gradient-to-r p-6 text-white md:h-[360px] md:p-11" th:classappend="${b.theme.gradient()}">
                         <!-- 배너가 가리키는 곳의 상품 사진 (PC: 펼친 카드 3장, 모바일: 한 장) -->
                         <div class="absolute right-10 top-1/2 hidden -translate-y-1/2 lg:block"><div th:replace="~{fragments/visual :: fan(${pics}, 'md')}"></div></div>
@@ -26,6 +29,7 @@
                             <p th:if="${b.subtitle != null}" class="mt-2 text-sm opacity-90 md:text-base" th:text="${b.subtitle}">설명</p>
                         </div>
                     </a>
+                    </th:block>
                 </div>
                 <div class="absolute bottom-4 right-5 flex gap-1.5" data-carousel-dots></div>
             </div>
@@ -33,7 +37,7 @@
                 <a th:href="@{/deals}" class="group relative flex flex-col justify-end overflow-hidden rounded-[28px] bg-brand-100 p-8 hover:bg-brand-200/60">
                     <th:block th:with="pics=${@visuals.forLink('/deals', 2)}">
                         <img th:each="u, st : ${pics}" th:src="${u}" alt="" aria-hidden="true" loading="lazy"
-                             class="absolute h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0"
+                             class="absolute hidden h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0 lg:block"
                              th:classappend="${st.first} ? 'right-24 top-6 -rotate-6' : 'right-6 top-10 rotate-6'">
                     </th:block>
                     <span class="relative text-sm font-bold text-brand-700">매일 아침 7시, 20개 한정</span>
@@ -43,7 +47,7 @@
                 <a th:href="@{/plus}" class="group relative flex flex-col justify-end overflow-hidden rounded-[28px] bg-sea-100 p-8 hover:bg-sea-200/60">
                     <th:block th:with="pics=${@visuals.forLink('/plus', 2)}">
                         <img th:each="u, st : ${pics}" th:src="${u}" alt="" aria-hidden="true" loading="lazy"
-                             class="absolute h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0"
+                             class="absolute hidden h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0 lg:block"
                              th:classappend="${st.first} ? 'right-24 top-6 -rotate-6' : 'right-6 top-10 rotate-6'">
                     </th:block>
                     <span class="relative text-sm font-bold text-sea-700">양팡플러스</span>

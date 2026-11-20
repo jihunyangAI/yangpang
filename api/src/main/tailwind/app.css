@@ -132,3 +132,105 @@
   40% { transform: translateY(-0.18em) rotate(0deg); }
   100% { transform: none; }
 }
+
+/*
+ * ===== 홈 무료배송(양팡플러스) 배너 (2026-11-21) =====
+ * 짙은 남색~보라 바탕 + 움직이는 빛 번짐, 로고 색 트럭이 달리는 길, 둥실 뜬 상품 사진 상자,
+ * "배송비 3,000원 → 0원" 반복, 빛이 지나가는 버튼. 움직임 줄이기 설정이면 모두 멈춘다.
+ */
+.yp-free {
+  --yp-yellow: #ffc61a;
+  --yp-red: #e5352b;
+  --yp-blue: #2458d6;
+  background: linear-gradient(120deg, #141c3f 0%, #22306b 45%, #4a35a8 100%);
+  isolation: isolate;
+}
+.yp-free-blob {
+  position: absolute; border-radius: 9999px; filter: blur(48px); opacity: .55; z-index: -1;
+  animation: yp-blob 14s ease-in-out infinite alternate;
+}
+.yp-free-blob.b1 { width: 340px; height: 340px; left: -80px; top: -120px; background: #3d6bff; }
+.yp-free-blob.b2 { width: 300px; height: 300px; right: 8%; bottom: -150px; background: #b14dff; animation-delay: -6s; }
+.yp-free-blob.b3 { width: 180px; height: 180px; right: 30%; top: -60px; background: var(--yp-yellow); opacity: .22; animation-delay: -3s; }
+.yp-free-grid {
+  position: absolute; inset: 0; z-index: -1; opacity: .18;
+  background-image: radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 45%, #000 100%);
+}
+@keyframes yp-blob { to { transform: translate(60px, 30px) scale(1.15); } }
+
+.yp-spark { position: absolute; color: #fff; font-size: 14px; opacity: 0; animation: yp-twinkle 3.2s ease-in-out infinite; }
+@keyframes yp-twinkle { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); } 50% { opacity: .95; transform: scale(1) rotate(90deg); } }
+
+/* 깜빡이는 점이 있는 문구 */
+.yp-chip { display: inline-flex; align-items: center; gap: .5rem; border-radius: 9999px; padding: .3rem .8rem;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); backdrop-filter: blur(6px); }
+.yp-dot { position: relative; width: 8px; height: 8px; border-radius: 9999px; background: var(--yp-yellow); }
+.yp-dot::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: var(--yp-yellow); animation: yp-ping 1.8s cubic-bezier(0,0,.2,1) infinite; }
+@keyframes yp-ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+
+/* 제목 형광펜 (그어지듯 나타남) */
+.yp-hl {
+  background-image: linear-gradient(90deg, rgba(255,198,26,.95), rgba(255,140,60,.95));
+  background-repeat: no-repeat; background-position: 0 88%; background-size: 0% .28em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  animation: yp-marker 1.1s .35s cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes yp-marker { to { background-size: 100% .28em; } }
+
+/* 배송비 3,000원 → 0원 (4초마다 반복) */
+.yp-fee { display: inline-flex; align-items: center; gap: .6rem; border-radius: 16px; padding: .45rem .9rem;
+  background: rgba(10,14,40,.45); border: 1px solid rgba(255,255,255,.16); }
+.yp-fee-old { position: relative; opacity: .8; }
+.yp-fee-old::after { content: ""; position: absolute; left: -2px; right: -2px; top: 52%; height: 2px; background: var(--yp-red);
+  transform-origin: left; transform: scaleX(0); animation: yp-strike 4s ease-in-out infinite; }
+@keyframes yp-strike { 0%, 12% { transform: scaleX(0); } 28%, 88% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+.yp-fee-new { display: inline-block; color: var(--yp-yellow); font-weight: 900; transform-origin: center; animation: yp-zero 4s ease-in-out infinite; }
+@keyframes yp-zero { 0%, 25% { transform: scale(.6); opacity: 0; } 36% { transform: scale(1.35); opacity: 1; } 44%, 88% { transform: scale(1); opacity: 1; } 100% { transform: scale(.6); opacity: 0; } }
+
+/* 빛이 지나가는 버튼 */
+.yp-cta { position: relative; overflow: hidden; align-items: center; gap: .4rem; border-radius: 9999px;
+  background: #fff; color: #22306b; font-weight: 800; padding: .7rem 1.3rem; box-shadow: 0 10px 30px -10px rgba(255,198,26,.65);
+  transition: transform .2s ease, box-shadow .2s ease; }
+.yp-free:hover .yp-cta { transform: translateY(-2px); box-shadow: 0 14px 34px -10px rgba(255,198,26,.9); }
+.yp-cta::after { content: ""; position: absolute; inset: 0; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255,198,26,.55), transparent);
+  transform: translateX(-160%) skewX(-20deg); animation: yp-shine 3.4s ease-in-out infinite; }
+@keyframes yp-shine { 0%, 55% { transform: translateX(-160%) skewX(-20deg); } 85%, 100% { transform: translateX(320%) skewX(-20deg); } }
+.yp-cta .yp-arrow { transition: transform .2s ease; }
+.yp-free:hover .yp-cta .yp-arrow { transform: translateX(4px); }
+
+/* 오른쪽 무대: 길 + 트럭 + 떠 있는 사진 상자 */
+.yp-road { position: absolute; left: 0; right: 0; bottom: 38px; height: 4px; border-radius: 4px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.75) 0 26px, transparent 26px 46px);
+  background-size: 46px 4px; animation: yp-dash .55s linear infinite; opacity: .55; }
+@keyframes yp-dash { to { background-position: -46px 0; } }
+.yp-truck { position: absolute; animation: yp-truck-in 1.2s cubic-bezier(.2,.9,.3,1.2) both, yp-bob .5s ease-in-out 1.2s infinite alternate; }
+@keyframes yp-truck-in { from { transform: translateX(-260px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes yp-bob { to { transform: translateY(-3px); } }
+.yp-truck .yp-wheel { transform-box: fill-box; transform-origin: center; animation: yp-spin .5s linear infinite; }
+@keyframes yp-spin { to { transform: rotate(360deg); } }
+.yp-speed { position: absolute; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.8));
+  animation: yp-speed .9s linear infinite; }
+@keyframes yp-speed { from { transform: translateX(30px); opacity: 0; } 30% { opacity: 1; } to { transform: translateX(-60px); opacity: 0; } }
+.yp-parcel { position: absolute; border-radius: 22px; overflow: hidden; background: #fff; padding: 6px;
+  box-shadow: 0 22px 40px -18px rgba(0,0,0,.6); animation: yp-float 4.5s ease-in-out infinite; }
+.yp-parcel img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
+.yp-parcel .yp-tag { position: absolute; left: 12px; bottom: 12px; border-radius: 9999px; padding: 2px 9px; font-size: 11px; font-weight: 800;
+  background: var(--yp-yellow); color: #22306b; }
+@keyframes yp-float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-12px) rotate(var(--r, 0deg)); } }
+.yp-stamp { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 9999px;
+  width: 86px; height: 86px; background: var(--yp-red); color: #fff; font-weight: 900; line-height: 1.05; text-align: center;
+  font-size: 13px; box-shadow: 0 0 0 5px rgba(255,255,255,.9), 0 16px 30px -10px rgba(0,0,0,.5);
+  animation: yp-stamp 4s ease-in-out infinite; }
+.yp-stamp b { display: block; font-size: 24px; font-family: "Fredoka", system-ui, sans-serif; }
+@keyframes yp-stamp { 0%, 30% { transform: scale(0) rotate(-40deg); } 40% { transform: scale(1.15) rotate(-8deg); } 48%, 90% { transform: scale(1) rotate(-12deg); } 100% { transform: scale(0) rotate(-40deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .yp-free *, .yp-free *::before, .yp-free *::after { animation: none !important; transition: none !important; }
+  .yp-hl { background-size: 100% .28em; }
+  .yp-fee-old::after { transform: scaleX(1); }
+  .yp-fee-new, .yp-stamp { opacity: 1; transform: none; }
+  .yp-spark { opacity: .6; }
+}

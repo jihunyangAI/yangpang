@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  홈 무료배송(양팡플러스) 배너 슬라이드. 문구는 관리자 배너(제목·설명·문구)를 그대로 쓰고, 배송비는 운영 기준값.
+  pics: 플러스 회원가 상품 사진(@visuals), fee: 양팡배송 배송비. 움직임은 app.css의 .yp-free 참고
+-->
+<a th:fragment="plus(b, pics, fee)" th:href="${b.linkUrl}"
+   class="yp-free relative flex h-52 w-full shrink-0 snap-start items-center overflow-hidden p-6 text-white md:h-[360px] md:p-11">
+    <span class="yp-free-blob b1"></span><span class="yp-free-blob b2"></span><span class="yp-free-blob b3"></span>
+    <span class="yp-free-grid"></span>
+    <span class="yp-spark" style="left:46%;top:16%;animation-delay:.2s">✦</span>
+    <span class="yp-spark" style="left:58%;top:70%;animation-delay:1.4s;font-size:10px">✦</span>
+    <span class="yp-spark" style="left:88%;top:12%;animation-delay:2.1s">✦</span>
+    <span class="yp-spark" style="left:72%;top:28%;animation-delay:.9s;font-size:9px">✦</span>
+    <span class="yp-spark" style="left:36%;top:84%;animation-delay:2.6s;font-size:11px">✦</span>
+
+    <!-- 오른쪽 무대 (태블릿 이상): 떠 있는 사진 상자 + 도장 + 길 위를 달리는 트럭 -->
+    <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] lg:block" aria-hidden="true">
+        <div th:if="${#lists.size(pics) > 0}" class="yp-parcel" style="--r:-6deg;right:50%;top:44px;width:124px;height:124px">
+            <img th:src="${pics[0]}" alt=""><span class="yp-tag">무료배송</span></div>
+        <div th:if="${#lists.size(pics) > 1}" class="yp-parcel" style="--r:5deg;right:13%;top:22px;width:150px;height:150px;animation-delay:-1.5s">
+            <img th:src="${pics[1]}" alt=""><span class="yp-tag">회원가</span></div>
+        <div class="yp-stamp" style="right:4%;top:172px"><span>배송비<b>0원</b></span></div>
+        <div class="yp-road"></div>
+        <span class="yp-speed" style="left:8%;bottom:70px;width:46px"></span>
+        <span class="yp-speed" style="left:14%;bottom:84px;width:30px;animation-delay:.3s"></span>
+        <svg class="yp-truck" style="left:14%;bottom:30px" width="150" height="84" viewBox="0 0 200 112" fill="none">
+            <ellipse cx="100" cy="104" rx="86" ry="6" fill="rgba(0,0,0,.28)"/>
+            <rect x="8" y="10" width="118" height="68" rx="12" fill="#ffc61a"/>
+            <rect x="8" y="50" width="118" height="9" fill="#e5352b"/>
+            <rect x="8" y="59" width="118" height="6" fill="#2458d6"/>
+            <text x="67" y="40" text-anchor="middle" font-family="Fredoka, system-ui, sans-serif" font-weight="700" font-size="22" fill="#22306b">YangPang</text>
+            <path d="M126 30h34c6 0 11 3 14 8l14 20c2 3 3 6 3 9v11H126z" fill="#2458d6"/>
+            <path d="M136 38h22c3 0 6 2 7 4l9 13h-38z" fill="#cfe0ff"/>
+            <rect x="182" y="66" width="10" height="6" rx="2" fill="#ffe680"/>
+            <g class="yp-wheel"><circle cx="46" cy="84" r="15" fill="#1b1f33"/><circle cx="46" cy="84" r="6" fill="#d9dbe6"/><rect x="44.5" y="71" width="3" height="8" rx="1.5" fill="#d9dbe6"/></g>
+            <g class="yp-wheel"><circle cx="158" cy="84" r="15" fill="#1b1f33"/><circle cx="158" cy="84" r="6" fill="#d9dbe6"/><rect x="156.5" y="71" width="3" height="8" rx="1.5" fill="#d9dbe6"/></g>
+        </svg>
+    </div>
+    <!-- 모바일: 트럭만 작게 -->
+    <svg class="yp-truck absolute right-3 top-5 md:right-8 md:top-8 md:h-[78px] md:w-[138px] lg:hidden" width="92" height="52" viewBox="0 0 200 112" fill="none" aria-hidden="true">
+        <rect x="8" y="10" width="118" height="68" rx="12" fill="#ffc61a"/>
+        <rect x="8" y="50" width="118" height="9" fill="#e5352b"/><rect x="8" y="59" width="118" height="6" fill="#2458d6"/>
+        <path d="M126 30h34c6 0 11 3 14 8l14 20c2 3 3 6 3 9v11H126z" fill="#2458d6"/>
+        <path d="M136 38h22c3 0 6 2 7 4l9 13h-38z" fill="#cfe0ff"/>
+        <g class="yp-wheel"><circle cx="46" cy="84" r="15" fill="#1b1f33"/><circle cx="46" cy="84" r="6" fill="#d9dbe6"/></g>
+        <g class="yp-wheel"><circle cx="158" cy="84" r="15" fill="#1b1f33"/><circle cx="158" cy="84" r="6" fill="#d9dbe6"/></g>
+    </svg>
+
+    <!-- 왼쪽 글자 -->
+    <div class="relative max-w-[70%] lg:max-w-[50%]">
+        <span class="yp-chip text-[11px] font-bold tracking-wide md:text-sm"><span class="yp-dot"></span>
+            <span th:text="${b.caption != null} ? ${b.caption} : '양팡플러스'">양팡플러스</span></span>
+        <p class="mt-2.5 break-keep font-serif text-[22px] font-bold leading-snug md:mt-4 md:text-[40px]"><span class="yp-hl" th:text="${b.title}">제목</span></p>
+        <p class="mt-2.5 md:mt-4"><span class="yp-fee whitespace-nowrap text-sm md:text-base">
+            <span class="opacity-80">배송비</span>
+            <span class="yp-fee-old" th:text="${#numbers.formatInteger(fee, 1, 'COMMA')} + '원'">3,000원</span>
+            <span aria-hidden="true" class="opacity-70">→</span>
+            <span class="yp-fee-new text-lg md:text-2xl">0원</span>
+        </span></p>
+        <p th:if="${b.subtitle != null}" class="mt-3 hidden text-sm opacity-85 sm:block md:text-base" th:text="${b.subtitle}">설명</p>
+        <span class="yp-cta mt-5 hidden text-sm md:inline-flex">한 달 무료로 시작하기 <span class="yp-arrow" aria-hidden="true">→</span></span>
+    </div>
+</a>
+</body>
+</html>
