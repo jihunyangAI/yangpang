@@ -7,13 +7,17 @@
 
 ## 화면
 
-| 홈 | 오늘의 특가 |
+| 홈 | 카테고리 · 기획전 |
 |---|---|
-| ![홈](docs/screenshots/home.jpg) | ![오늘의 특가](docs/screenshots/home-deals.jpg) |
-| **상품 목록** (정렬·필터) | **상품 상세** |
-| ![상품 목록](docs/screenshots/category.jpg) | ![상품 상세](docs/screenshots/product.jpg) |
-| **이미지로 찾기** (색 분포 비교) | **모바일** (홈 · 상품 상세) |
-| ![이미지로 찾기](docs/screenshots/image-search.jpg) | <img src="docs/screenshots/mobile-home.jpg" width="48%" alt="모바일 홈"> <img src="docs/screenshots/mobile-product.jpg" width="48%" alt="모바일 상품 상세"> |
+| ![홈](docs/screenshots/home.jpg) | ![카테고리와 기획전](docs/screenshots/home-categories.jpg) |
+| **오늘의 특가** | **상품 목록** (정렬·필터) |
+| ![오늘의 특가](docs/screenshots/home-deals.jpg) | ![상품 목록](docs/screenshots/category.jpg) |
+| **상품 상세** | **이미지로 찾기** (색 분포 비교) |
+| ![상품 상세](docs/screenshots/product.jpg) | ![이미지로 찾기](docs/screenshots/image-search.jpg) |
+| **기획전** | **브랜드관** |
+| ![기획전](docs/screenshots/events.jpg) | ![브랜드관](docs/screenshots/brands.jpg) |
+| **모바일** (홈 · 상품 상세) | |
+| <img src="docs/screenshots/mobile-home.jpg" width="48%" alt="모바일 홈"> <img src="docs/screenshots/mobile-product.jpg" width="48%" alt="모바일 상품 상세"> | |
 
 상품 이름·가격·브랜드·리뷰는 모두 가짜이고, 상품 사진은 카테고리별 Pixabay 무료 사진입니다 (아래 "상품 사진").
 
@@ -80,7 +84,7 @@ Gradle과 Node.js(Tailwind 빌드용)는 Gradle이 알아서 내려받으므로 
 | `/admin/policies` | 운영 기준값 (배송비·반품 기간·수수료율·적립 금액 등 21개) |
 | `/admin/sellers/{id}`, `/admin/settlements`, `/admin/ads` | 판매자 점수·제재, 정산 현황, 광고 현황 |
 
-**상품 사진**: 카테고리별 실제 사진(Pixabay 무료 사진 474장, `api/src/main/resources/static/images/catalog/`, 출처는 같은 폴더 `credits.csv`). 다시 받으려면 `tools/catalog-photos/README.md`.
+**상품 사진**: 카테고리별 실제 사진(Pixabay 무료 사진 473장, `api/src/main/resources/static/images/catalog/`, 출처는 같은 폴더 `credits.csv`). 다시 받으려면 `tools/catalog-photos/README.md`.
 
 **AI 리뷰 요약·쇼핑 도우미 챗봇**: 앱을 띄우기 전에 `ANTHROPIC_API_KEY` 환경 변수를 설정하면 켜집니다(실제 요금 발생). 없으면 화면에서 숨겨집니다.
 

@@ -14,25 +14,41 @@
         <div class="grid gap-4 md:grid-cols-[7fr_5fr] md:gap-6">
             <div class="relative overflow-hidden rounded-[26px] md:rounded-[28px]" data-carousel>
                 <div class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth" data-carousel-track>
-                    <a th:each="b : ${banners}" th:href="${b.linkUrl}"
-                       class="flex h-52 w-full shrink-0 snap-start flex-col justify-end bg-gradient-to-r p-6 text-white md:h-[360px] md:p-11" th:classappend="${b.theme.gradient()}">
-                        <p th:if="${b.caption != null}" class="text-xs font-medium tracking-[0.15em] opacity-90 md:text-sm" th:text="${b.caption}">문구</p>
-                        <p class="mt-2 font-serif text-[26px] font-bold leading-snug md:text-[42px]" th:text="${b.title}">제목</p>
-                        <p th:if="${b.subtitle != null}" class="mt-2 text-sm opacity-90 md:text-base" th:text="${b.subtitle}">설명</p>
+                    <a th:each="b : ${banners}" th:href="${b.linkUrl}" th:with="pics=${@visuals.forLink(b.linkUrl, 3)}"
+                       class="relative flex h-52 w-full shrink-0 snap-start items-end overflow-hidden bg-gradient-to-r p-6 text-white md:h-[360px] md:p-11" th:classappend="${b.theme.gradient()}">
+                        <!-- 배너가 가리키는 곳의 상품 사진 (PC: 펼친 카드 3장, 모바일: 한 장) -->
+                        <div class="absolute right-10 top-1/2 hidden -translate-y-1/2 lg:block"><div th:replace="~{fragments/visual :: fan(${pics}, 'md')}"></div></div>
+                        <img th:if="${!#lists.isEmpty(pics)}" th:src="${pics[0]}" alt="" aria-hidden="true" loading="lazy"
+                             class="absolute -right-4 -top-3 h-32 w-32 rotate-6 rounded-[22px] object-cover opacity-95 shadow-xl ring-4 ring-white/70 lg:hidden">
+                        <div class="relative max-w-[62%] lg:max-w-[48%]">
+                            <p th:if="${b.caption != null}" class="text-xs font-medium tracking-[0.15em] opacity-90 md:text-sm" th:text="${b.caption}">문구</p>
+                            <p class="mt-2 font-serif text-[26px] font-bold leading-snug md:text-[42px]" th:text="${b.title}">제목</p>
+                            <p th:if="${b.subtitle != null}" class="mt-2 text-sm opacity-90 md:text-base" th:text="${b.subtitle}">설명</p>
+                        </div>
                     </a>
                 </div>
                 <div class="absolute bottom-4 right-5 flex gap-1.5" data-carousel-dots></div>
             </div>
             <div class="hidden grid-rows-2 gap-6 md:grid">
-                <a th:href="@{/deals}" class="flex flex-col justify-end rounded-[28px] bg-brand-100 p-8 hover:bg-brand-200/60">
-                    <span class="text-sm font-bold text-brand-700">매일 아침 7시, 20개 한정</span>
-                    <span class="mt-1 font-serif text-[26px] font-bold text-gray-900">오늘의 특가</span>
-                    <span class="mt-1 text-sm text-gray-600">수량이 다 팔리면 끝나요 ›</span>
+                <a th:href="@{/deals}" class="group relative flex flex-col justify-end overflow-hidden rounded-[28px] bg-brand-100 p-8 hover:bg-brand-200/60">
+                    <th:block th:with="pics=${@visuals.forLink('/deals', 2)}">
+                        <img th:each="u, st : ${pics}" th:src="${u}" alt="" aria-hidden="true" loading="lazy"
+                             class="absolute h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0"
+                             th:classappend="${st.first} ? 'right-24 top-6 -rotate-6' : 'right-6 top-10 rotate-6'">
+                    </th:block>
+                    <span class="relative text-sm font-bold text-brand-700">매일 아침 7시, 20개 한정</span>
+                    <span class="relative mt-1 font-serif text-[26px] font-bold text-gray-900">오늘의 특가</span>
+                    <span class="relative mt-1 text-sm text-gray-600">수량이 다 팔리면 끝나요 ›</span>
                 </a>
-                <a th:href="@{/plus}" class="flex flex-col justify-end rounded-[28px] bg-sea-100 p-8 hover:bg-sea-200/60">
-                    <span class="text-sm font-bold text-sea-700">양팡플러스</span>
-                    <span class="mt-1 font-serif text-[26px] font-bold text-gray-900">무료배송 + 회원가</span>
-                    <span class="mt-1 text-sm text-gray-600">한 달 무료로 써 보기 ›</span>
+                <a th:href="@{/plus}" class="group relative flex flex-col justify-end overflow-hidden rounded-[28px] bg-sea-100 p-8 hover:bg-sea-200/60">
+                    <th:block th:with="pics=${@visuals.forLink('/plus', 2)}">
+                        <img th:each="u, st : ${pics}" th:src="${u}" alt="" aria-hidden="true" loading="lazy"
+                             class="absolute h-28 w-28 rounded-[20px] object-cover shadow-lg ring-4 ring-white transition group-hover:rotate-0"
+                             th:classappend="${st.first} ? 'right-24 top-6 -rotate-6' : 'right-6 top-10 rotate-6'">
+                    </th:block>
+                    <span class="relative text-sm font-bold text-sea-700">양팡플러스</span>
+                    <span class="relative mt-1 font-serif text-[26px] font-bold text-gray-900">무료배송 + 회원가</span>
+                    <span class="relative mt-1 text-sm text-gray-600">한 달 무료로 써 보기 ›</span>
                 </a>
             </div>
         </div>
@@ -88,9 +104,15 @@
     <!-- 카테고리 바로가기 -->
     <th:block th:case="'CATEGORIES'"><section class="container-page mb-12 md:mb-16" aria-labelledby="home-cats">
         <h2 id="home-cats" class="section-title mb-4" th:text="${s.title}">카테고리</h2>
-        <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
-            <a th:each="top : ${categoryRoots}" th:href="@{/category/{id}(id=${top.id})}" th:text="${top.name}"
-               class="shrink-0 rounded-full bg-white px-4 py-2 text-sm text-gray-800 ring-1 ring-gray-200 hover:text-brand-700 hover:ring-brand-300">대분류</a>
+        <!-- 대분류마다 가장 많이 팔린 상품 사진 -->
+        <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-8 md:gap-x-4 md:gap-y-6 md:px-0">
+            <a th:each="top : ${categoryRoots}" th:href="@{/category/{id}(id=${top.id})}" th:with="pic=${@visuals.category(top.id)}"
+               class="group flex w-[76px] shrink-0 flex-col items-center gap-2 md:w-auto">
+                <span class="block aspect-square w-full overflow-hidden rounded-[22px] bg-gray-100 ring-1 ring-gray-200 transition group-hover:ring-2 group-hover:ring-brand-400">
+                    <img th:if="${pic != null}" th:src="${pic}" alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110">
+                </span>
+                <span class="text-center text-xs font-medium leading-tight text-gray-800 group-hover:text-brand-700 md:text-sm" th:text="${top.name}">대분류</span>
+            </a>
         </div>
     </section></th:block>
 
@@ -102,9 +124,12 @@
         </div>
         <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-4 md:gap-6 md:px-0">
             <a th:each="e : ${exhibitions}" th:href="@{/events/{slug}(slug=${e.slug})}"
-               class="flex h-40 w-64 shrink-0 flex-col justify-end rounded-3xl bg-gradient-to-r p-6 text-white transition hover:opacity-95 md:h-48 md:w-auto" th:classappend="${e.theme.gradient()}">
-                <b class="line-clamp-2 font-serif text-xl leading-snug" th:text="${e.title}">기획전</b>
-                <p class="mt-1.5 line-clamp-1 text-xs opacity-90" th:text="${e.subtitle}"></p>
+               class="group flex w-64 shrink-0 flex-col overflow-hidden rounded-3xl text-white transition hover:-translate-y-0.5 hover:shadow-lg md:w-auto">
+                <th:block th:with="pics=${@visuals.exhibition(e.id, 3)}"><div th:replace="~{fragments/visual :: strip(${pics}, 'h-28 md:h-32')}"></div></th:block>
+                <div class="flex-1 bg-gradient-to-r p-5" th:classappend="${e.theme.gradient()}">
+                    <b class="line-clamp-2 font-serif text-xl leading-snug" th:text="${e.title}">기획전</b>
+                    <p class="mt-1.5 line-clamp-1 text-xs opacity-90" th:text="${e.subtitle}"></p>
+                </div>
             </a>
         </div>
     </section></th:block>

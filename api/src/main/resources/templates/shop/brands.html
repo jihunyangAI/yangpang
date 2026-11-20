@@ -9,10 +9,11 @@
         <p class="mt-1 text-sm text-gray-500">많이 팔린 브랜드 순 · 모든 브랜드는 연구용 가짜 브랜드예요</p>
         <ul class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             <li th:each="b : ${brands}">
-                <a th:href="@{/brands/{id}(id=${b.id})}" class="flex h-full flex-col items-center rounded-lg border border-gray-200 p-4 text-center hover:border-brand-500">
-                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-xl font-black text-brand-700" th:text="${b.initial()}">브</span>
-                    <b class="mt-2 text-sm" th:text="${b.name}">브랜드</b>
-                    <span class="mt-0.5 text-xs text-gray-500" th:text="'상품 ' + ${b.products} + '개' + (${b.rating != null} ? ' · ★' + ${b.rating} : '')"></span>
+                <a th:href="@{/brands/{id}(id=${b.id})}" class="group flex h-full flex-col overflow-hidden rounded-2xl bg-white text-center ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-brand-400">
+                    <th:block th:with="pics=${@visuals.brand(b.id, 3)}"><div th:replace="~{fragments/visual :: strip(${pics}, 'h-20 sm:h-24')}"></div></th:block>
+                    <span class="mx-auto -mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-black text-brand-700 shadow ring-2 ring-brand-100" th:text="${b.initial()}">브</span>
+                    <b class="mt-1.5 px-2 text-sm" th:text="${b.name}">브랜드</b>
+                    <span class="mb-3 mt-0.5 text-xs text-gray-500" th:text="'상품 ' + ${b.products} + '개' + (${b.rating != null} ? ' · ★' + ${b.rating} : '')"></span>
                 </a>
             </li>
         </ul>

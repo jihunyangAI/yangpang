@@ -4,8 +4,9 @@
 <head><title>기획전 - YangPang</title></head>
 <body>
 <main class="flex-1">
-    <section class="bg-gradient-to-r py-10 text-white md:py-14" th:classappend="${e.theme.gradient()}">
-        <div class="container-page">
+    <section class="relative overflow-hidden bg-gradient-to-r py-10 text-white md:py-14" th:classappend="${e.theme.gradient()}">
+        <div class="absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:block"><th:block th:with="pics=${@visuals.exhibition(e.id, 3)}"><div th:replace="~{fragments/visual :: fan(${pics}, 'lg')}"></div></th:block></div>
+        <div class="container-page relative">
             <p class="text-xs font-semibold opacity-80"><a th:href="@{/events}" class="hover:underline">기획전</a> ›
                 <span th:text="${@fmt.date(e.startsAt)} + ' ~ ' + ${@fmt.date(e.endsAt)}"></span></p>
             <h1 class="mt-2 text-3xl font-black md:text-5xl" th:text="${e.title}">기획전</h1>

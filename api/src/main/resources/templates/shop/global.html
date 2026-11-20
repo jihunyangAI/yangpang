@@ -4,8 +4,9 @@
 <head><title>양팡직구 - YangPang</title></head>
 <body>
 <main class="flex-1">
-    <section class="bg-gradient-to-r from-sea-700 to-sea-500 py-8 text-white md:py-10">
-        <div class="container-page">
+    <section class="relative overflow-hidden bg-gradient-to-r from-sea-700 to-sea-500 py-8 text-white md:py-10 lg:py-14">
+        <div class="absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:block"><th:block th:with="pics=${@visuals.forLink('/global', 3)}"><div th:replace="~{fragments/visual :: fan(${pics}, 'md')}"></div></th:block></div>
+        <div class="container-page relative">
             <p class="text-sm font-semibold opacity-90">🌏 양팡직구</p>
             <h1 class="mt-1 text-2xl font-black md:text-4xl">해외 상품을 국내 배송처럼</h1>
             <p class="mt-2 text-sm opacity-90"><b th:text="${arrival}">도착 예정</b> · <span th:text="|${#numbers.formatInteger(policy['SHIPPING_FREE_THRESHOLD'], 1, 'COMMA')}원 이상 무료배송|">무료배송</span>(플러스 회원 항상 무료) ·

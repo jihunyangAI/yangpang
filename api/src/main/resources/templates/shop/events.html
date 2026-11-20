@@ -22,7 +22,13 @@
         <ul class="mt-5 grid gap-4 md:grid-cols-2">
             <li th:each="e : ${events}">
                 <a th:href="@{/events/{slug}(slug=${e.slug})}"
-                   class="block rounded-xl bg-gradient-to-r p-6 text-white transition hover:opacity-95" th:classappend="${e.theme.gradient()}">
+                   class="relative flex min-h-[176px] flex-col overflow-hidden rounded-3xl bg-gradient-to-r p-6 text-white transition hover:-translate-y-0.5 hover:shadow-lg sm:flex-row sm:items-center" th:classappend="${e.theme.gradient()}">
+                    <th:block th:with="pics=${@visuals.exhibition(e.id, 3)}">
+                    <!-- 모바일: 위쪽 사진 띠 / 넓은 화면: 오른쪽 펼친 사진 -->
+                    <div class="-mx-6 -mt-6 mb-4 sm:hidden"><div th:replace="~{fragments/visual :: strip(${pics}, 'h-28')}"></div></div>
+                    <div class="absolute right-2 top-1/2 hidden -translate-y-1/2 scale-90 sm:block"><div th:replace="~{fragments/visual :: fan(${pics}, 'md')}"></div></div>
+                    </th:block>
+                    <div class="relative sm:max-w-[58%]">
                     <p class="text-xs font-semibold opacity-80" th:text="${@fmt.date(e.startsAt)} + ' ~ ' + ${@fmt.date(e.endsAt)}"></p>
                     <h2 class="mt-1 text-xl font-black" th:text="${e.title}">기획전</h2>
                     <p class="mt-1 text-sm opacity-90" th:text="${e.subtitle}"></p>
@@ -30,6 +36,7 @@
                         <span th:text="'상품 ' + ${productCounts.getOrDefault(e.id, 0L)} + '개'"></span>
                         <span th:if="${e.couponId != null}" class="ml-1 rounded bg-white/25 px-1.5 py-0.5">🎟️ 전용 쿠폰</span>
                     </p>
+                    </div>
                 </a>
             </li>
         </ul>

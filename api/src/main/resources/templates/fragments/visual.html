@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 사진과 함께 쓰는 공통 조각. 사진은 @visuals가 연결된 상품에서 고른다 (장식용이라 alt는 비움) -->
+
+<!-- 겹쳐 펼친 사진 카드 3장 (배너·전문관 머리 오른쪽). size: 'lg'(배너) / 'md'(머리) -->
+<div th:fragment="fan(urls, size)" class="pointer-events-none relative" aria-hidden="true"
+     th:classappend="${size == 'lg'} ? 'h-[250px] w-[340px]' : 'h-[170px] w-[250px]'">
+    <img th:each="u, st : ${urls}" th:src="${u}" alt="" loading="lazy"
+         class="absolute rounded-[22px] object-cover shadow-xl ring-4 ring-white/80"
+         th:classappend="${size == 'lg'}
+            ? (${st.index == 0} ? 'left-0 top-10 h-44 w-44 -rotate-6' : (${st.index == 1} ? 'left-[150px] top-0 z-10 h-52 w-52 rotate-3' : 'left-[80px] top-[120px] z-20 h-32 w-32 -rotate-2'))
+            : (${st.index == 0} ? 'left-0 top-6 h-32 w-32 -rotate-6' : (${st.index == 1} ? 'left-[110px] top-0 z-10 h-36 w-36 rotate-3' : 'left-[60px] top-[92px] z-20 h-24 w-24 -rotate-2'))"
+         th:if="${st.index < 3}">
+</div>
+
+<!-- 사진 세 칸 띠 (카드 윗부분) -->
+<div th:fragment="strip(urls, height)" class="grid grid-cols-3 gap-0.5" th:classappend="${height}" aria-hidden="true">
+    <img th:each="u : ${urls}" th:src="${u}" alt="" loading="lazy" class="h-full w-full object-cover">
+</div>
+
+<!-- 작은 사진 줄 (모바일 머리 등) -->
+<div th:fragment="row(urls)" class="flex gap-2" aria-hidden="true">
+    <img th:each="u : ${urls}" th:src="${u}" alt="" loading="lazy" class="h-14 w-14 rounded-xl object-cover ring-2 ring-white/70">
+</div>
+</body>
+</html>

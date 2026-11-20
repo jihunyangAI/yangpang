@@ -4,8 +4,9 @@
 <head><title>브랜드관 - YangPang</title></head>
 <body>
 <main class="flex-1">
-    <section class="bg-gray-900 py-8 text-white">
-        <div class="container-page flex items-center gap-4">
+    <section class="relative overflow-hidden bg-gray-900 py-8 text-white md:py-14">
+        <div class="absolute right-10 top-1/2 hidden -translate-y-1/2 md:block"><th:block th:with="pics=${@visuals.brand(brand.id, 3)}"><div th:replace="~{fragments/visual :: fan(${pics}, 'md')}"></div></th:block></div>
+        <div class="container-page relative flex items-center gap-4">
             <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-2xl font-black text-gray-900"
                   th:text="${#strings.substring(brand.name, 0, 1)}">브</span>
             <div>
