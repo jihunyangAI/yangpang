@@ -5,6 +5,18 @@
 - 기획서: [`yangpang.md`](yangpang.md)
 - 레퍼런스 분석: [`reference/coupang.md`](reference/coupang.md)
 
+## 화면
+
+| 홈 | 오늘의 특가 |
+|---|---|
+| ![홈](docs/screenshots/home.jpg) | ![오늘의 특가](docs/screenshots/home-deals.jpg) |
+| **상품 목록** (정렬·필터) | **상품 상세** |
+| ![상품 목록](docs/screenshots/category.jpg) | ![상품 상세](docs/screenshots/product.jpg) |
+| **이미지로 찾기** (색 분포 비교) | **모바일** (홈 · 상품 상세) |
+| ![이미지로 찾기](docs/screenshots/image-search.jpg) | <img src="docs/screenshots/mobile-home.jpg" width="48%" alt="모바일 홈"> <img src="docs/screenshots/mobile-product.jpg" width="48%" alt="모바일 상품 상세"> |
+
+상품 이름·가격·브랜드·리뷰는 모두 가짜이고, 상품 사진은 카테고리별 Pixabay 무료 사진입니다 (아래 "상품 사진").
+
 ## 필요한 것
 
 | 도구 | 버전 |
