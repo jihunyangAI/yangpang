@@ -29,8 +29,10 @@ def wait(sql, expected, secs=30):
 
 
 def fast_forward_delivery(order_no):
-    """시뮬레이터 가속: 결제완료 → 배송완료까지 단계 시각을 과거로 (시뮬레이터가 밀린 단계를 따라잡는다)"""
-    q(f"""update order_item set status_changed_at = now() - interval '2 days', promised_date = (now() at time zone 'Asia/Seoul')::date - 1
+    """시뮬레이터 가속: 결제완료 → 배송완료까지 단계 시각을 과거로 (시뮬레이터가 밀린 단계를 따라잡는다).
+    도착 예정일은 이틀 전으로: 시뮬레이터가 일부 상품(주문상품 번호 % 20 == 7)을 하루 늦게 배송하므로 어제로 하면
+    그런 상품은 "오늘 14시"가 되어 오전에 돌리면 배송완료가 안 된다"""
+    q(f"""update order_item set status_changed_at = now() - interval '2 days', promised_date = (now() at time zone 'Asia/Seoul')::date - 2
           where order_id = (select id from orders where order_no = '{order_no}')""")
 
 

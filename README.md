@@ -90,6 +90,15 @@ Gradle과 Node.js(Tailwind 빌드용)는 Gradle이 알아서 내려받으므로 
 
 **배송을 보고 싶다면**: 주문한 뒤 `/admin/simulator`에서 "+1일"을 누르거나 배속을 60x로 올리면 배송 단계·구매확정·반품 회수가 진행됩니다. "실제 시각으로 되돌리기"로 원래대로.
 
+## 다른 사람에게 잠깐 보여 주기 (테스트용)
+
+`start-demo.bat`을 두 번 클릭하면 앱을 띄우고(이미 떠 있으면 그대로) Cloudflare 임시 터널을 열어 `https://....trycloudflare.com` 주소를 보여 줍니다(클립보드에 복사, 브라우저로 열림). 끌 때는 `stop-demo.bat`.
+
+- 필요한 것: Docker Desktop, cloudflared (`winget install --id Cloudflare.cloudflared -e`). Cloudflare 가입은 필요 없습니다
+- 이 PC와 "YangPang App" 창이 켜져 있는 동안만 열리고, 켤 때마다 주소가 바뀝니다. 재부팅 후 자동으로 켜지지 않습니다
+- 주소를 아는 사람은 테스트 계정(운영자 포함)으로 로그인할 수 있으니 테스트할 사람에게만 알려 주세요. 끝나면 `./gradlew :seed:bootRun`으로 데이터를 다시 만들면 깨끗해집니다
+- 실제 동작은 `tools/demo/start-demo.ps1`·`stop-demo.ps1` (끄기는 이 프로젝트 경로의 java와 cloudflared만 끔)
+
 ## 개발 메모
 
 - `domain` 모듈을 고친 뒤에는 앱을 **완전히 다시 시작**해야 합니다 (개발용 자동 재시작은 `api` 모듈만 다시 읽음). 템플릿·CSS·JS는 저장하면 바로 반영됩니다.
